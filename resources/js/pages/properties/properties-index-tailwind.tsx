@@ -54,6 +54,26 @@ export default function PropertiesIndex({ properties }: any) {
             </tbody>
           </table>
         </div>
+        {/* Pagination Controls */}
+        {properties.meta && properties.meta.links && (
+          <div className="flex justify-center mt-6">
+            <nav className="inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              {properties.meta.links.map((link: any, idx: number) => (
+                <Link
+                  key={idx}
+                  href={link.url || '#'}
+                  className={`px-3 py-1 border text-sm rounded-md mx-0.5 transition-colors duration-150
+                    ${link.active ? 'bg-blue-600 text-white border-blue-600 dark:bg-blue-400 dark:text-zinc-900 dark:border-blue-400' :
+                    'bg-white text-blue-600 border-zinc-300 hover:bg-blue-50 dark:bg-zinc-900 dark:text-blue-400 dark:border-zinc-700 dark:hover:bg-zinc-800'}
+                    ${!link.url ? 'pointer-events-none opacity-50' : ''}`}
+                  dangerouslySetInnerHTML={{ __html: link.label }}
+                  aria-current={link.active ? 'page' : undefined}
+                  preserveScroll
+                />
+              ))}
+            </nav>
+          </div>
+        )}
       </div>
     </AppLayout>
   );

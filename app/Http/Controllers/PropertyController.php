@@ -31,8 +31,18 @@ class PropertyController extends Controller
         $properties = Property::with(['address', 'propertyType', 'listingMethod', 'listingStatus', 'categories', 'features', 'prices', 'media'])
             ->where('user_id', Auth::id())
             ->paginate(10);
+        // Transform paginator to match frontend expectations
         return Inertia::render('properties/properties-index', [
-            'properties' => $properties
+            'properties' => [
+                'data' => $properties->items(),
+                'meta' => [
+                    'current_page' => $properties->currentPage(),
+                    'last_page' => $properties->lastPage(),
+                    'per_page' => $properties->perPage(),
+                    'total' => $properties->total(),
+                    'links' => $properties->toArray()['links'],
+                ],
+            ]
         ]);
     }
 
@@ -45,8 +55,11 @@ class PropertyController extends Controller
             'propertyTypes' => PropertyType::all(),
             'listingMethods' => ListingMethod::all(),
             'listingStatuses' => ListingStatus::all(),
-            'categories' => Category::all(),
-            'features' => Feature::all()
+            // Eager load categories with children for hierarchy
+            'categoryGroups' => \App\Models\CategoryType::with(['categories' => function($q) {
+                $q->whereNull('parent_id')->with('children');
+            }])->get(),
+            'featureGroups' => \App\Models\FeatureGroup::with('features')->get(),
         ]);
     }
 

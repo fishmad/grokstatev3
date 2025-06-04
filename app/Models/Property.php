@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Property extends Model
 {
@@ -75,4 +76,21 @@ class Property extends Model
         'is_free' => 'boolean',
         'expires_at' => 'datetime',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($property) {
+            if (empty($property->slug) && !empty($property->title)) {
+                $baseSlug = Str::slug($property->title);
+                $slug = $baseSlug;
+                $i = 2;
+                while (Property::where('slug', $slug)->exists()) {
+                    $slug = $baseSlug . '-' . $i;
+                    $i++;
+                }
+                $property->slug = $slug;
+            }
+        });
+    }
 }

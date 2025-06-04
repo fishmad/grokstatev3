@@ -71,7 +71,7 @@ class DatabaseSeeder extends Seeder
         $listingMethod = \App\Models\ListingMethod::first() ?? \App\Models\ListingMethod::create(['name' => 'Sale']);
         $listingStatus = \App\Models\ListingStatus::first() ?? \App\Models\ListingStatus::create(['name' => 'Active']);
 
-        \App\Models\Property::factory(10)->create([
+        \App\Models\Property::factory(21)->create([
             'user_id' => $user->id,
             'property_type_id' => $propertyType->id,
             'listing_method_id' => $listingMethod->id,
@@ -79,6 +79,11 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // $this->call(RealEstateSeeder::class);
-		// $this->call(GrokSeeder::class);
+        // $this->call(GrokSeeder::class);
+        $this->call(FeatureSeeder::class);
+        $this->call(CategorySeeder::class);
+        $this->call(PropertyTypeSeeder::class);
+        $this->call(ListingMethodSeeder::class);
+        $this->call(ListingStatusSeeder::class);
     }
 }
