@@ -87,12 +87,14 @@ class DatabaseSeeder extends Seeder
             'listing_status_id' => $listingStatus->id,
         ]);
 
-        // $this->call(RealEstateSeeder::class);
-        // $this->call(GrokSeeder::class);
         $this->call(FeatureSeeder::class);
         $this->call(CategorySeeder::class);
         $this->call(PropertyTypeSeeder::class);
         $this->call(ListingMethodSeeder::class);
         $this->call(ListingStatusSeeder::class);
+        $this->call(CountrySeeder::class);
+        $this->call(AustralianStatesSeeder::class);
+        $this->call(AustralianSuburbsSeeder::class);
+
     }
 }

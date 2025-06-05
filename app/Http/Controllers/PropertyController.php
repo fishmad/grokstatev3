@@ -30,6 +30,8 @@ class PropertyController extends Controller
     {
         $properties = Property::with(['address', 'propertyType', 'listingMethod', 'listingStatus', 'categories', 'features', 'prices', 'media'])
             ->where('user_id', Auth::id())
+            ->orderByDesc('updated_at')
+            ->orderByDesc('created_at')
             ->paginate(10);
         // Transform paginator to match frontend expectations
         return Inertia::render('properties/properties-index', [
@@ -68,34 +70,61 @@ class PropertyController extends Controller
      */
     public function store(StorePropertyRequest $request)
     {
-        \Log::info('PropertyController@store debug', [
-            'user' => \Auth::user(),
-            'roles' => \Auth::user() ? \Auth::user()->getRoleNames() : null,
-            'is_authenticated' => \Auth::check(),
-        ]);
+        try {
+            $data = $request->validated();
+            \Log::info('PropertyController@store validated data', $data);
 
-        $data = $request->validated();
-        $data['user_id'] = Auth::id();
-        $data['expires_at'] = now()->addMonths(6);
-        $property = Property::create($data);
-        // Attach categories, features, prices, etc. if present
-        if ($request->has('categories')) {
-            $property->categories()->sync($request->input('categories'));
+            // Create property
+            $property = \App\Models\Property::create([
+                'title' => $data['title'],
+                'description' => $data['description'],
+                'property_type_id' => $data['property_type_id'],
+                'listing_method_id' => $data['listing_method_id'] ?? null,
+                'listing_status_id' => $data['listing_status_id'] ?? null,
+                'beds' => $data['beds'] ?? null,
+                'baths' => $data['baths'] ?? null,
+                'parking_spaces' => $data['parking_spaces'] ?? null,
+                'ensuites' => $data['ensuites'] ?? null,
+                'garage_spaces' => $data['garage_spaces'] ?? null,
+                'land_size' => $data['land_size'] ?? null,
+                'land_size_unit' => $data['land_size_unit'] ?? null,
+                'building_size' => $data['building_size'] ?? null,
+                'building_size_unit' => $data['building_size_unit'] ?? null,
+                'dynamic_attributes' => $data['dynamic_attributes'] ?? null,
+                'slug' => \Str::slug($data['title']) . '-' . uniqid(),
+                'expires_at' => now()->addMonths(6),
+                'user_id' => \Auth::id(),
+            ]);
+
+            \Log::info('Property created', ['id' => $property->id]);
+
+            // Create address using suburb_id directly
+            $property->address()->create([
+                'suburb_id' => $data['suburb_id'],
+                'street_number' => $data['street_number'] ?? null,
+                'street_name' => $data['street_name'],
+                'unit_number' => $data['unit_number'] ?? null,
+                'lot_number' => $data['lot_number'] ?? null,
+                'site_name' => $data['site_name'] ?? null,
+                'region_name' => $data['region_name'] ?? null,
+                'lat' => $data['lat'] ?? null,
+                'long' => $data['long'] ?? null,
+                'display_address_on_map' => $data['display_address_on_map'] ?? true,
+                'display_street_view' => $data['display_street_view'] ?? true,
+            ]);
+
+            \Log::info('Address created for property', ['property_id' => $property->id]);
+
+            // Use Inertia-friendly redirect with flash message
+            return redirect()->route('properties.show', $property->id)
+                ->with('success', 'Property created successfully!');
+        } catch (\Throwable $e) {
+            \Log::error('PropertyController@store exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return back()->withErrors(['error' => 'An error occurred while creating the property.']);
         }
-        if ($request->has('features')) {
-            $property->features()->sync($request->input('features'));
-        }
-        // Save address if present
-        if (!empty($data['address']) && is_array($data['address'])) {
-            $addressData = $data['address'];
-            $addressData['property_id'] = $property->id;
-            // Only allow fillable fields
-            $address = new Address();
-            $fillable = $address->getFillable();
-            $filtered = array_intersect_key($addressData, array_flip($fillable));
-            Address::create($filtered);
-        }
-        return redirect()->route('properties.show', $property->id);
     }
 
     /**
@@ -136,6 +165,19 @@ class PropertyController extends Controller
         }
         if ($request->has('features')) {
             $property->features()->sync($request->input('features'));
+        }
+        // Update address if present
+        if ($property->address) {
+            $property->address->update([
+                'suburb_id' => $request->input('suburb_id'),
+                'street_number' => $request->input('street_number'),
+                'street_name' => $request->input('street_name'),
+                'unit_number' => $request->input('unit_number'),
+                'lat' => $request->input('lat'),
+                'long' => $request->input('long'),
+                // Optionally: 'display_address_on_map' => $request->input('display_address_on_map'),
+                // Optionally: 'display_street_view' => $request->input('display_street_view'),
+            ]);
         }
         return redirect()->route('properties.show', $property->id);
     }

@@ -25,4 +25,8 @@ class Address extends Model
     {
         return $this->belongsTo(Property::class);
     }
+    public function suburb()
+    {
+        return $this->belongsTo(Suburb::class);
+    }
 }

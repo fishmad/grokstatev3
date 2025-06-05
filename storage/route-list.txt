@@ -1,0 +1,57 @@
+
+  GET|HEAD        / ...................................................................................... home
+  GET|HEAD        api/countries ............................................................................... 
+  GET|HEAD        api/resolve-location ........................................................................ 
+  GET|HEAD        api/states/{country} ........................................................................ 
+  GET|HEAD        api/suburbs/{state} ......................................................................... 
+  GET|HEAD        api/user .................................................................................... 
+  GET|HEAD        categories ...................................... categories.index › CategoryController@index
+  POST            categories ...................................... categories.store › CategoryController@store
+  GET|HEAD        categories/create ............................. categories.create › CategoryController@create
+  GET|HEAD        categories/{category} ............................. categories.show › CategoryController@show
+  PUT|PATCH       categories/{category} ......................... categories.update › CategoryController@update
+  DELETE          categories/{category} ....................... categories.destroy › CategoryController@destroy
+  GET|HEAD        categories/{category}/edit ........................ categories.edit › CategoryController@edit
+  GET|HEAD        confirm-password ................. password.confirm › Auth\ConfirmablePasswordController@show
+  POST            confirm-password ................................... Auth\ConfirmablePasswordController@store
+  GET|HEAD        dashboard ......................................................................... dashboard
+  POST            email/verification-notification verification.send › Auth\EmailVerificationNotificationContro…
+  GET|HEAD        features ........................................... features.index › FeatureController@index
+  POST            features ........................................... features.store › FeatureController@store
+  GET|HEAD        features/create .................................. features.create › FeatureController@create
+  GET|HEAD        features/{feature} ................................... features.show › FeatureController@show
+  PUT|PATCH       features/{feature} ............................... features.update › FeatureController@update
+  DELETE          features/{feature} ............................. features.destroy › FeatureController@destroy
+  GET|HEAD        features/{feature}/edit .............................. features.edit › FeatureController@edit
+  GET|HEAD        forgot-password .................. password.request › Auth\PasswordResetLinkController@create
+  POST            forgot-password ..................... password.email › Auth\PasswordResetLinkController@store
+  GET|HEAD        login .................................... login › Auth\AuthenticatedSessionController@create
+  POST            login ............................................. Auth\AuthenticatedSessionController@store
+  POST            logout ................................. logout › Auth\AuthenticatedSessionController@destroy
+  GET|HEAD        properties ...................................... properties.index › PropertyController@index
+  POST            properties ...................................... properties.store › PropertyController@store
+  GET|HEAD        properties/create ............................. properties.create › PropertyController@create
+  GET|HEAD        properties/{property} ............................. properties.show › PropertyController@show
+  PUT|PATCH       properties/{property} ......................... properties.update › PropertyController@update
+  DELETE          properties/{property} ....................... properties.destroy › PropertyController@destroy
+  GET|HEAD        properties/{property}/edit ........................ properties.edit › PropertyController@edit
+  POST            properties/{property}/upgrades ..................... upgrades.store › UpgradeController@store
+  GET|HEAD        register .................................... register › Auth\RegisteredUserController@create
+  POST            register ................................................ Auth\RegisteredUserController@store
+  POST            reset-password ............................ password.store › Auth\NewPasswordController@store
+  GET|HEAD        reset-password/{token} ................... password.reset › Auth\NewPasswordController@create
+  GET|HEAD        sanctum/csrf-cookie ....... sanctum.csrf-cookie › Laravel\Sanctum › CsrfCookieController@show
+  ANY             settings ............................................ Illuminate\Routing › RedirectController
+  GET|HEAD        settings/appearance .............................................................. appearance
+  GET|HEAD        settings/password .......................... password.edit › Settings\PasswordController@edit
+  PUT             settings/password ...................... password.update › Settings\PasswordController@update
+  GET|HEAD        settings/profile ............................. profile.edit › Settings\ProfileController@edit
+  PATCH           settings/profile ......................... profile.update › Settings\ProfileController@update
+  DELETE          settings/profile ....................... profile.destroy › Settings\ProfileController@destroy
+  GET|HEAD        storage/{path} ................................................................ storage.local
+  GET|HEAD        up .......................................................................................... 
+  GET|HEAD        verify-email ................... verification.notice › Auth\EmailVerificationPromptController
+  GET|HEAD        verify-email/{id}/{hash} ................... verification.verify › Auth\VerifyEmailController
+
+                                                                                            Showing [53] routes
+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'; // Keep useEffect if used elsewhere
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import AddressAutofill from '@/components/address-autofill';
 import { Button } from '@/components/ui/button';
@@ -59,6 +59,10 @@ interface PropertyFormData {
   media: File[];
 }
 
+interface Country { id: number; name: string; }
+interface State { id: number; name: string; }
+interface Suburb { id: number; name: string; postcode: string; }
+
 export default function PropertiesCreate({ propertyTypes, listingMethods, listingStatuses, categoryGroups, featureGroups }: any) {
   const { data, setData, post, processing, errors, progress } = useForm<PropertyFormData>({
     title: '',
@@ -99,6 +103,11 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
   const [attributes, setAttributes] = useState<{ key: string; value: string }[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Country, State, Suburb states
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [states, setStates] = useState<State[]>([]);
+  const [suburbs, setSuburbs] = useState<Suburb[]>([]);
+
   // Update data.dynamic_attributes whenever attributes changes
   useEffect(() => {
     setData('dynamic_attributes', attributes.reduce((acc, { key, value }) => {
@@ -107,22 +116,70 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
     }, {} as Record<string, string>));
   }, [attributes, setData]); // Add setData to dependency array
 
+  // Fetch countries on mount
+  useEffect(() => {
+    fetch('/api/countries')
+      .then(res => res.json())
+      .then(setCountries)
+      .catch(() => setCountries([]));
+  }, []);
+
+  // Fetch states when country_id changes
+  useEffect(() => {
+    if (data.country_id) {
+      fetch(`/api/states/${data.country_id}`)
+        .then(res => res.json())
+        .then(setStates)
+        .catch(() => setStates([]));
+    } else {
+      setStates([]);
+    }
+  }, [data.country_id]);
+
+  // Fetch suburbs when state_id changes
+  useEffect(() => {
+    if (data.state_id) {
+      fetch(`/api/suburbs/${data.state_id}`)
+        .then(res => res.json())
+        .then(setSuburbs)
+        .catch(() => setSuburbs([]));
+    } else {
+      setSuburbs([]);
+    }
+  }, [data.state_id]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSuccessMessage(null); // Clear previous success
-    // The 'post' method from useForm will handle FormData creation internally
-    // if 'data.media' contains files.
-    post('/properties', {
-      // Optional: Add callbacks for success, error, finish
+
+    console.log('Submitting form');
+
+    // Get postcode from selected suburb
+    const selectedSuburb = suburbs.find(su => String(su.id) === String(data.suburb_id));
+
+    // Only set street_name and postcode if they are non-empty
+    const payload: Record<string, any> = { ...data };
+    if (data.address?.street_name) payload.street_name = data.address.street_name;
+    if (data.address?.street_number) payload.street_number = data.address.street_number;
+    if (data.address?.unit_number) payload.unit_number = data.address.unit_number;
+    if (data.address?.lat) payload.lat = data.address.lat;
+    if (data.address?.long) payload.long = data.address.long;
+    if (selectedSuburb?.postcode) payload.postcode = selectedSuburb.postcode;
+
+    // Remove nested address from payload to avoid confusion
+    delete payload.address;
+
+    console.log('Payload to submit:', payload);
+
+    post('/properties', payload, {
       onSuccess: () => {
         setSuccessMessage('Property created successfully!');
         // Optionally reset form fields here
         // reset();
       },
-      onError: (pageErrors) => {
-        // Errors are already available in the 'errors' object from useForm
+      onError: (errors: any) => {
         setSuccessMessage(null);
-        console.error('Form submission error:', pageErrors);
+        console.error('Form submission error:', errors);
       },
       // preserveScroll: true, // Optional: to prevent scrolling to top on validation errors
     });
@@ -170,6 +227,9 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
     // eslint-disable-next-line
   }, [data.categories, propertyTypes, topLevelCategories]);
 
+  const { props } = usePage();
+  const backendSuccess = (props as any).success;
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Create Property" />
@@ -181,9 +241,9 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
           </Button>
         </div>
         <form className="w-full bg-white dark:bg-zinc-900 rounded-lg shadow p-6 space-y-8 border border-zinc-200 dark:border-zinc-800" onSubmit={handleSubmit}>
-          {successMessage && (
+          {(successMessage || backendSuccess) && (
             <div className="mb-4 p-3 rounded bg-green-100 text-green-800 border border-green-300">
-              {successMessage}
+              {successMessage || backendSuccess}
             </div>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -219,7 +279,7 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
               {/* Listing Method */}
               <div className="space-y-2">
                 <label htmlFor="listing_method_id" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Listing Method</label>
-                <Select value={data.listing_method_id} onValueChange={val => setData('listing_method_id', val)}>
+                <Select value={data.listing_method_id} onValueChange={val => setData('listing_method_id', val)} required>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Listing Method" />
                   </SelectTrigger>
@@ -483,6 +543,67 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
                   </label>
                 </div>
               </div>
+              {/* Country, State, Suburb */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Country</label>
+                <select
+                  className="input input-bordered w-full"
+                  value={data.country_id || ''}
+                  onChange={e => setData('country_id', e.target.value)}
+                  required
+                >
+                  <option value="">Select Country</option>
+                  {countries.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">State</label>
+                <select
+                  className="input input-bordered w-full"
+                  value={data.state_id || ''}
+                  onChange={e => setData('state_id', e.target.value)}
+                  required
+                  disabled={!data.country_id}
+                >
+                  <option value="">Select State</option>
+                  {states.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Suburb</label>
+                <select
+                  className="input input-bordered w-full"
+                  value={data.suburb_id || ''}
+                  onChange={e => setData('suburb_id', e.target.value)}
+                  required
+                  disabled={!data.state_id}
+                >
+                  <option value="">Select Suburb</option>
+                  {suburbs.map((su) => (
+                    <option key={su.id} value={su.id}>{su.name} ({su.postcode})</option>
+                  ))}
+                </select>
+              </div>
+              {/* Postcode input: show if no suburb is selected or selected suburb has no postcode */}
+              {(!data.suburb_id || !suburbs.find(su => String(su.id) === String(data.suburb_id))?.postcode) && (
+                <div className="space-y-2">
+                  <label htmlFor="postcode" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Postcode</label>
+                  <Input
+                    id="postcode"
+                    name="postcode"
+                    type="text"
+                    value={data.postcode || ''}
+                    onChange={e => setData('postcode', e.target.value)}
+                    required
+                    placeholder="Enter postcode"
+                  />
+                  {errors.postcode && <p className="text-xs text-red-500 mt-1">{errors.postcode}</p>}
+                </div>
+              )}
               {/* Dynamic Attributes */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Dynamic Attributes (JSON)</label>
