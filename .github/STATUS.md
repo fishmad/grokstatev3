@@ -1,4 +1,4 @@
-# Project Status (as of June 5, 2025)
+# Project Status (as of June 6, 2025)
 
 ## Completed Tasks (Micro-detailed)
 
@@ -74,28 +74,50 @@
   - Confirmed that the property creation workflow is robust, with validation, error handling, and flash messages working as intended.
   - The project is now in a stable state for further feature development, UI polish, and advanced business logic.
 
-## Next Steps / Further Potential Work
+## Completed Tasks (Tonight)
+
+- **Address & Nested Data Handling:**
+  - Fixed backend validation and controller logic to use nested `address` fields (e.g., `address.street_name`, `address.suburb_id`).
+  - Updated `StorePropertyRequest` to move `suburb_id` from root into `address` for backend consistency.
+  - Ensured all address fields are correctly validated, saved, and displayed end-to-end.
+  - Confirmed backend and frontend are now fully aligned for address and location data structures.
+
+- **React/TypeScript Robustness:**
+  - Refactored `AddressAutofill` usage to be fully type-safe and controlled, preventing runtime errors.
+  - Added type conversions and mapping helpers to bridge between Google API, form state, and backend expectations.
+  - Fixed all TypeScript errors related to address and price forms, including strict typing for `PriceForm` and `AddressForm`.
+  - Ensured all form fields (including price, address, and location IDs) are robustly managed and validated.
+
+- **End-to-End Property Creation:**
+  - Successfully created properties with all required fields, including nested address and location IDs, from the UI.
+  - Backend now saves and displays all property data as expected, with correct relationships and eager loading.
+  - Error handling and validation messages are clear and user-friendly throughout the flow.
+
+- **Debugging & Logging:**
+  - Used log inspection and debug output to trace and resolve backend issues quickly.
+  - Confirmed that all controller and request logic is now robust to both legacy and new frontend payloads.
+
+## Issues Still Encountered / To Do Tomorrow
+
+- **Final End-to-End Test:**
+  - Run a full property creation and edit cycle, including media upload, to confirm all edge cases are handled.
+  - Double-check that all address/location fields are saved and displayed correctly in all views.
+
+- **Frontend Address/ID Sync:**
+  - Ensure that when a user selects or autofills an address, the correct suburb/state/country IDs are always resolved and set in form state.
+  - Add more robust error handling for failed location resolution or missing IDs.
 
 - **UI/UX Polish:**
-  - Add tooltips, inline validation, or more advanced help for complex fields.
-  - Improve mobile responsiveness and accessibility.
-  - Add loading states and better error handling for async actions.
-
-- **Advanced Linking/Logic:**
-  - Allow for more advanced linking between property type and categories (e.g., restrict available property types based on selected category).
-  - Add support for category-specific dynamic attributes or feature sets.
-
-- **Validation & Business Rules:**
-  - Add stricter backend validation for category/property type consistency.
-  - Enforce business rules for required fields based on property type or category.
+  - Add tooltips, inline validation, and help text for address/location fields.
+  - Improve mobile responsiveness and accessibility for the property creation form.
 
 - **Testing:**
-  - Add automated tests for property creation, category/feature selection, and auto-selection logic.
-  - Add E2E tests for the property creation workflow.
+  - Add/expand automated feature tests for property creation, especially for address and price validation.
+  - Add E2E tests for the full property workflow.
 
 - **Performance & Refactoring:**
-  - Optimize data loading and minimize unnecessary re-renders in the form.
-  - Refactor for even clearer separation of concerns (custom hooks, smaller components).
+  - Optimize form state updates and minimize unnecessary re-renders.
+  - Refactor address/location logic into a custom hook or smaller components for clarity.
 
 ---
 

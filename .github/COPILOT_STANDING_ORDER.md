@@ -419,21 +419,36 @@ touch .github/COPILOT_STANDING_ORDER.md
 
 ---
 
-## Conclusion
+## 8. Data Structure & Validation Pitfalls: Flat vs Nested Arrays (Historical Note)
 
-This standing order ensures GitHub Copilot generates consistent, maintainable code for your Laravel 12.x / React 19 project. It incorporates your updated TypeScript structure (`resources/ts/pages/properties/properties_index.tsx`), Laravel’s coding style, and your tech stack (Sanctum, Spatie, Inertia, Tailwind, ShadCN/UI, Lucide). Use the provided prompts in VS Code to expedite development with the Laravel React Starter Kit.
+### Context & Lessons Learned (June 2025)
 
-Refer to `.github/BUILD_ORDER.md` for the full roadmap and Copilot prompts.
-Refer to `.github/STATUS.md` for the full roadmap status.
+During development, the project encountered recurring issues with mismatches between frontend and backend data structures, especially for nested objects like `address` and location fields (`suburb_id`, `state_id`, `country_id`).
 
-- Whenever a new view/page is created and a corresponding route is added or updated in `routes/web.php` or `routes/api.php`, a menu item must be added to the main sidebar navigation (in `app-sidebar.tsx` or the relevant sidebar component) to provide direct UI access to the new resource or view. This should be done as part of the same build step.
-- The menu item should use a clear, human-readable title and the correct route path. Use the appropriate icon for the resource or view, following the existing icon usage pattern.
-- This requirement applies to all admin and public navigation sidebars. If a new sidebar is introduced, update this standing order accordingly.
+#### Key Problems Encountered
 
-- All new page views (including resource CRUD pages) must use the dashboard layout pattern as shown in `dashboard.tsx`:
-  - Use the `AppLayout` component for consistent layout and theming.
-  - Include a `breadcrumbs` array and pass it to `AppLayout` for navigation context.
-  - Use the `Head` component from Inertia for page titles.
-  - Structure the main content with Tailwind utility classes for spacing, cards, and responsive grids as in the dashboard example.
-- When creating new resource views (e.g., for properties, categories, features), ensure the design and structure are consistent with the dashboard template, including breadcrumbs and layout.
-- Update existing resource views to use this pattern for a unified user experience.
+- **Flat vs Nested Data:**
+  - The frontend (React/Inertia) sometimes sent address/location fields (e.g., `street_name`, `suburb_id`) at the top level, while backend validation and Eloquent models expected them nested under an `address` array/object.
+  - This caused validation errors, missing required fields, and runtime exceptions (e.g., "Undefined array key 'street_name'").
+
+- **Validation Rules:**
+  - Laravel FormRequest validation rules must match the expected data structure. If using `address.street_name`, the frontend must send `{ address: { street_name: ... } }`.
+  - If the frontend sends flat fields, use `prepareForValidation()` in the FormRequest to move/merge them into the correct nested structure before validation.
+
+- **Frontend/Backend Sync:**
+  - Always ensure the React form state and the payload sent to the backend matches the backend's expected structure (nested for address, flat for IDs if required, etc.).
+  - Use helpers or mapping functions in React to convert between Google API results, form state, and backend payloads.
+
+- **TypeScript Types:**
+  - Keep TypeScript interfaces in sync with backend expectations. If the backend expects `address.lat` as a string, ensure the form state and all components use the same type.
+
+- **Testing:**
+  - Add feature tests and log inspection to catch mismatches early. Use debug logging in FormRequests and controllers to inspect incoming payloads and validated data.
+
+#### Standing Order for Copilot
+
+- **Always clarify and enforce the expected data structure for nested objects (e.g., address) in both frontend and backend.**
+- **If backend validation expects nested fields (e.g., `address.street_name`), ensure the frontend sends them nested.**
+- **If legacy or third-party code sends flat fields, use `prepareForValidation()` to merge them into the correct structure before validation.**
+- **Document any required mapping or transformation logic in both code and project docs.**
+- **Add automated tests for all forms that use nested data.**
