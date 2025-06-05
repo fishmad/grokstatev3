@@ -40,9 +40,9 @@ class Property extends Model
         return $this->belongsToMany(Feature::class, 'property_feature');
     }
 
-    public function prices()
+    public function price()
     {
-        return $this->hasMany(Price::class);
+        return $this->hasOne(Price::class);
     }
 
     public function media()
@@ -69,6 +69,11 @@ class Property extends Model
     public function subscriptions()
     {
         return $this->hasMany(Subscription::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**

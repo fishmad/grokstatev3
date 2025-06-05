@@ -4,6 +4,10 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Property;
+use App\Models\Price;
+use App\Models\PropertyType;
+use App\Models\ListingMethod;
+use App\Models\ListingStatus;
 use Spatie\Permission\Models\Role;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -15,86 +19,91 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Ensure Spatie roles exist before assigning (removed 'user' role)
+        // Ensure Spatie roles exist before assigning
         foreach (['super-admin', 'admin', 'agent'] as $role) {
             Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
         }
 
-        // User::factory(10)->create();
-
-        // Always create or update the default super-admin user
-        $superAdmin = \App\Models\User::updateOrCreate(
+        // Create users with roles
+        $superAdmin = User::updateOrCreate(
             ['email' => 'super-admin@test.com'],
             [
                 'name' => 'super-admin',
                 'password' => bcrypt('12345678'),
                 'email_verified_at' => now(),
-                'role' => 'super-admin', // NOTE: This column is NOT used by Spatie permissions. See migration for annotation.
+                'role' => 'super-admin',
                 'is_agent' => true,
                 'is_active' => true,
             ]
         );
         $superAdmin->assignRole('super-admin');
 
-        $admin = \App\Models\User::updateOrCreate(
+        $admin = User::updateOrCreate(
             ['email' => 'admin@test.com'],
             [
                 'name' => 'admin',
                 'password' => bcrypt('12345678'),
                 'email_verified_at' => now(),
-                'role' => 'admin', // NOTE: Not used by Spatie
+                'role' => 'admin',
                 'is_agent' => true,
                 'is_active' => true,
             ]
         );
         $admin->assignRole('admin');
-        
-        $agent = \App\Models\User::updateOrCreate(
+
+        $agent = User::updateOrCreate(
             ['email' => 'agent@test.com'],
             [
                 'name' => 'agent',
                 'password' => bcrypt('12345678'),
                 'email_verified_at' => now(),
-                'role' => 'agent', // NOTE: Not used by Spatie
+                'role' => 'agent',
                 'is_agent' => true,
                 'is_active' => true,
             ]
         );
         $agent->assignRole('agent');
 
-        $user = \App\Models\User::updateOrCreate(
+        $user = User::updateOrCreate(
             ['email' => 'user@test.com'],
             [
                 'name' => 'user',
                 'password' => bcrypt('12345678'),
                 'email_verified_at' => now(),
-                'role' => 'user', // NOTE: Not used by Spatie
+                'role' => 'user',
                 'is_active' => true,
             ]
         );
-        // No assignRole for 'user' (default users have no role)
+        // No assignRole for 'user'
 
         // Ensure required records exist for foreign keys
-        $user = \App\Models\User::first() ?? \App\Models\User::factory()->create();
-        $propertyType = \App\Models\PropertyType::first() ?? \App\Models\PropertyType::create(['name' => 'House']);
-        $listingMethod = \App\Models\ListingMethod::first() ?? \App\Models\ListingMethod::create(['name' => 'Sale']);
-        $listingStatus = \App\Models\ListingStatus::first() ?? \App\Models\ListingStatus::create(['name' => 'Active']);
+        $propertyType = PropertyType::firstOrCreate(['name' => 'House']);
+        $listingMethod = ListingMethod::firstOrCreate(['name' => 'Sale']);
+        $listingStatus = ListingStatus::firstOrCreate(['name' => 'Active']);
 
-        \App\Models\Property::factory(21)->create([
-            'user_id' => $user->id,
-            'property_type_id' => $propertyType->id,
-            'listing_method_id' => $listingMethod->id,
-            'listing_status_id' => $listingStatus->id,
+
+
+        // Call other seeders in logical order
+        $this->call([
+            FeatureSeeder::class,
+            CategorySeeder::class,
+            PropertyTypeSeeder::class,
+            ListingMethodSeeder::class,
+            ListingStatusSeeder::class,
+            CountrySeeder::class,
+            AustralianStatesSeeder::class,
+            AustralianSuburbsSeeder::class,
         ]);
 
-        $this->call(FeatureSeeder::class);
-        $this->call(CategorySeeder::class);
-        $this->call(PropertyTypeSeeder::class);
-        $this->call(ListingMethodSeeder::class);
-        $this->call(ListingStatusSeeder::class);
-        $this->call(CountrySeeder::class);
-        $this->call(AustralianStatesSeeder::class);
-        $this->call(AustralianSuburbsSeeder::class);
-
+        // Seed properties with price using factories
+        Property::factory()
+            ->count(50)
+            ->state([
+                'user_id' => $superAdmin->id, // Assign all properties to super admin
+                'property_type_id' => $propertyType->id,
+                'listing_method_id' => $listingMethod->id,
+                'listing_status_id' => $listingStatus->id,
+            ])
+            ->create();
     }
 }

@@ -46,6 +46,31 @@ Route::middleware('auth')->group(function () {
         'destroy' => 'features.destroy',
     ]);
     Route::post('/properties/{property}/upgrades', [UpgradeController::class, 'store'])->middleware('auth')->name('upgrades.store');
+
+    // Special route for the property wizard form
+    Route::get('properties/wizard/create', function () {
+        // Use the same props as the normal create route
+        $propertyTypes = \App\Models\PropertyType::all();
+        $listingMethods = \App\Models\ListingMethod::all();
+        $listingStatuses = \App\Models\ListingStatus::all();
+        $categoryGroups = \App\Models\Category::with('children')->get()->groupBy('category_type_id')->values();
+        $featureGroups = \App\Models\FeatureGroup::with('features')->get();
+        return Inertia::render('properties/properties-create-wizard', [
+            'propertyTypes' => $propertyTypes,
+            'listingMethods' => $listingMethods,
+            'listingStatuses' => $listingStatuses,
+            'categoryGroups' => $categoryGroups,
+            'featureGroups' => $featureGroups,
+        ]);
+    })->name('properties.wizard.create');
+
+    Route::get('/properties/{property}/media', function ($propertyId) {
+        // Optionally, fetch property and pass to Inertia
+        return Inertia::render('properties/properties-create-media', [
+            'propertyId' => $propertyId,
+            // Optionally, pass property data if needed
+        ]);
+    })->name('properties.media');
 });
 
 require __DIR__.'/settings.php';
