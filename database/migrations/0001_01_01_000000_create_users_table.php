@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true); // Grok
             $table->boolean('is_agent')->default(false); // Grok
             $table->json('agent_details')->nullable(); // Grok
-            $table->enum('role', ['user', 'agent', 'admin', 'super-admin'])->default('user'); // Grok
+            $table->enum('role', ['user', 'agent', 'admin', 'super-admin'])->default('user'); // Not used by Spatie permissions. Use assignRole() and the roles/model_has_roles tables instead. Consider removing in future.
             $table->timestamps();
         });
 

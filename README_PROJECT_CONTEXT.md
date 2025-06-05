@@ -83,6 +83,13 @@ Welcome to the grokstatev3 project! This guide helps any new Copilot AI or devel
 - **Documentation:**
   - Updated `.github/Property-Type-vs-Categories.md` with clear, lint-compliant standing order for future devs/AI.
 
+## Developer/Build Checklist
+
+- [ ] Ensure `StorePropertyRequest::authorize()` returns `auth()->check()` to allow authenticated users to create properties (see app/Http/Requests/StorePropertyRequest.php).
+- [ ] Review and update all FormRequest authorize() methods for correct access control.
+- [ ] Confirm all required fields and relationships are handled in property creation and update flows.
+- [ ] ...existing checklist items...
+
 ### Further Potential Work
 
 - **UI/UX Polish:**

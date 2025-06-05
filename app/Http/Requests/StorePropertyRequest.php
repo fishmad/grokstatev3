@@ -11,7 +11,8 @@ class StorePropertyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        // Anyone authenticated can attempt to create a property
+        return auth()->check();
     }
 
     /**

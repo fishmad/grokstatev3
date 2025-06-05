@@ -59,7 +59,89 @@ export default function PropertiesEdit({ property, propertyTypes, listingMethods
               <select className="input input-bordered w-full" name="features" multiple value={data.features} onChange={e => setData('features', Array.from(e.target.selectedOptions, o => o.value as string))}>
                 {features.map((f: any) => <option key={f.id} value={f.id}>{f.name}</option>)}
               </select>
-              <AddressAutofill value={data.address} onChange={val => setData('address', val)} />
+              {/* Address */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Address</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input
+                    className="input input-bordered w-full"
+                    type="text"
+                    placeholder="Street Number"
+                    value={data.address?.street_number || ''}
+                    onChange={e => setData('address', { ...data.address, street_number: e.target.value })}
+                  />
+                  <input
+                    className="input input-bordered w-full"
+                    type="text"
+                    placeholder="Street Name"
+                    value={data.address?.street_name || ''}
+                    onChange={e => setData('address', { ...data.address, street_name: e.target.value })}
+                    required
+                  />
+                  <input
+                    className="input input-bordered w-full"
+                    type="text"
+                    placeholder="Unit Number (optional)"
+                    value={data.address?.unit_number || ''}
+                    onChange={e => setData('address', { ...data.address, unit_number: e.target.value })}
+                  />
+                  <input
+                    className="input input-bordered w-full"
+                    type="text"
+                    placeholder="Lot Number (optional)"
+                    value={data.address?.lot_number || ''}
+                    onChange={e => setData('address', { ...data.address, lot_number: e.target.value })}
+                  />
+                  <input
+                    className="input input-bordered w-full"
+                    type="text"
+                    placeholder="Site Name (optional)"
+                    value={data.address?.site_name || ''}
+                    onChange={e => setData('address', { ...data.address, site_name: e.target.value })}
+                  />
+                  <input
+                    className="input input-bordered w-full"
+                    type="text"
+                    placeholder="Region Name (optional)"
+                    value={data.address?.region_name || ''}
+                    onChange={e => setData('address', { ...data.address, region_name: e.target.value })}
+                  />
+                  <input
+                    className="input input-bordered w-full"
+                    type="number"
+                    step="0.00000001"
+                    placeholder="Latitude (optional)"
+                    value={data.address?.lat || ''}
+                    onChange={e => setData('address', { ...data.address, lat: e.target.value })}
+                  />
+                  <input
+                    className="input input-bordered w-full"
+                    type="number"
+                    step="0.00000001"
+                    placeholder="Longitude (optional)"
+                    value={data.address?.long || ''}
+                    onChange={e => setData('address', { ...data.address, long: e.target.value })}
+                  />
+                </div>
+                <div className="flex gap-4 mt-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={data.address?.display_address_on_map ?? true}
+                      onChange={e => setData('address', { ...data.address, display_address_on_map: e.target.checked })}
+                    />
+                    <span>Display address on map</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={data.address?.display_street_view ?? true}
+                      onChange={e => setData('address', { ...data.address, display_street_view: e.target.checked })}
+                    />
+                    <span>Display street view</span>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
           <Button type="submit" className="w-full" disabled={processing}>Update</Button>

@@ -70,11 +70,8 @@ export default function PropertiesIndex({ properties }: any) {
                           isActive={link.active}
                           aria-current={link.active ? 'page' : undefined}
                         >
-                          <Link
-                            href={link.url}
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                            preserveScroll
-                          />
+                          {/* Do not nest <a> inside <a> */}
+                          <span dangerouslySetInnerHTML={{ __html: link.label }} />
                         </PaginationLink>
                       ) : (
                         <span

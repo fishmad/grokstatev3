@@ -71,6 +71,33 @@ class Property extends Model
         return $this->hasMany(Subscription::class);
     }
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'title',
+        'description',
+        'property_type_id',
+        'listing_method_id',
+        'listing_status_id',
+        'beds',
+        'baths',
+        'parking_spaces',
+        'ensuites',
+        'garage_spaces',
+        'land_size',
+        'land_size_unit',
+        'building_size',
+        'building_size_unit',
+        'dynamic_attributes',
+        'prices',
+        'slug',
+        'user_id',
+        'expires_at',
+    ];
+
     protected $casts = [
         'dynamic_attributes' => 'array',
         'is_free' => 'boolean',

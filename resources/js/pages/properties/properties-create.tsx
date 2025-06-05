@@ -20,16 +20,66 @@ const breadcrumbs = [
   { title: 'Create', href: '/properties/create' },
 ];
 
+// Add at the top, after imports
+interface AddressForm {
+  street_number?: string;
+  street_name?: string;
+  unit_number?: string;
+  lot_number?: string;
+  site_name?: string;
+  region_name?: string;
+  lat?: string;
+  long?: string;
+  display_address_on_map?: boolean;
+  display_street_view?: boolean;
+}
+
+interface PropertyFormData {
+  [key: string]: any;
+  title: string;
+  description: string;
+  property_type_id: string;
+  listing_method_id: string;
+  listing_status_id: string;
+  categories: string[];
+  features: string[];
+  address: AddressForm;
+  beds: string;
+  baths: string;
+  parking_spaces: string;
+  ensuites: string;
+  garage_spaces: string;
+  land_size: string;
+  land_size_unit: string;
+  building_size: string;
+  building_size_unit: string;
+  dynamic_attributes: Record<string, string>;
+  prices: any[];
+  slug: string;
+  media: File[];
+}
+
 export default function PropertiesCreate({ propertyTypes, listingMethods, listingStatuses, categoryGroups, featureGroups }: any) {
-  const { data, setData, post, processing, errors, progress } = useForm({ // Add progress for file uploads
+  const { data, setData, post, processing, errors, progress } = useForm<PropertyFormData>({
     title: '',
     description: '',
     property_type_id: '',
     listing_method_id: '',
     listing_status_id: '',
-    categories: [] as string[],
-    features: [] as string[],
-    address: {},
+    categories: [],
+    features: [],
+    address: {
+      street_number: '',
+      street_name: '',
+      unit_number: '',
+      lot_number: '',
+      site_name: '',
+      region_name: '',
+      lat: '',
+      long: '',
+      display_address_on_map: true,
+      display_street_view: true,
+    },
     beds: '',
     baths: '',
     parking_spaces: '',
@@ -39,35 +89,39 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
     land_size_unit: '',
     building_size: '',
     building_size_unit: '',
-    dynamic_attributes: '', // This will be a JSON string
+    dynamic_attributes: {},
     prices: [],
     slug: '',
-    media: [] as File[], // Changed from FileList | null to File[]
+    media: [],
   });
 
   // Dynamic Attributes state for key-value pairs
   const [attributes, setAttributes] = useState<{ key: string; value: string }[]>([]);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Update data.dynamic_attributes whenever attributes changes
   useEffect(() => {
-    setData('dynamic_attributes', JSON.stringify(attributes.reduce((acc, { key, value }) => {
+    setData('dynamic_attributes', attributes.reduce((acc, { key, value }) => {
       if (key) acc[key] = value;
       return acc;
-    }, {} as Record<string, string>)));
+    }, {} as Record<string, string>));
   }, [attributes, setData]); // Add setData to dependency array
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setSuccessMessage(null); // Clear previous success
     // The 'post' method from useForm will handle FormData creation internally
     // if 'data.media' contains files.
     post('/properties', {
       // Optional: Add callbacks for success, error, finish
       onSuccess: () => {
-        // e.g., redirect or show a success message
-        // data.reset(); // Optionally reset form fields
+        setSuccessMessage('Property created successfully!');
+        // Optionally reset form fields here
+        // reset();
       },
       onError: (pageErrors) => {
         // Errors are already available in the 'errors' object from useForm
+        setSuccessMessage(null);
         console.error('Form submission error:', pageErrors);
       },
       // preserveScroll: true, // Optional: to prevent scrolling to top on validation errors
@@ -127,6 +181,11 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
           </Button>
         </div>
         <form className="w-full bg-white dark:bg-zinc-900 rounded-lg shadow p-6 space-y-8 border border-zinc-200 dark:border-zinc-800" onSubmit={handleSubmit}>
+          {successMessage && (
+            <div className="mb-4 p-3 rounded bg-green-100 text-green-800 border border-green-300">
+              {successMessage}
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6">
               {/* Basic Info */}
@@ -166,7 +225,7 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
                   </SelectTrigger>
                   <SelectContent>
                     {listingMethods.map((lm: any) => (
-                      <SelectItem key={lm.id} value={lm.id}>{lm.name}</SelectItem>
+                      <SelectItem key={lm.id} value={String(lm.id)}>{lm.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -180,7 +239,7 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
                   </SelectTrigger>
                   <SelectContent>
                     {listingStatuses.map((ls: any) => (
-                      <SelectItem key={ls.id} value={ls.id}>{ls.name}</SelectItem>
+                      <SelectItem key={ls.id} value={String(ls.id)}>{ls.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -350,7 +409,79 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
               {/* Address */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Address</label>
-                <AddressAutofill value={data.address} onChange={val => setData('address', val)} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    type="text"
+                    placeholder="Street Number"
+                    value={data.address?.street_number || ''}
+                    onChange={e => setData('address', { ...data.address, street_number: e.target.value })}
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Street Name"
+                    value={data.address?.street_name || ''}
+                    onChange={e => setData('address', { ...data.address, street_name: e.target.value })}
+                    required
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Unit Number (optional)"
+                    value={data.address?.unit_number || ''}
+                    onChange={e => setData('address', { ...data.address, unit_number: e.target.value })}
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Lot Number (optional)"
+                    value={data.address?.lot_number || ''}
+                    onChange={e => setData('address', { ...data.address, lot_number: e.target.value })}
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Site Name (optional)"
+                    value={data.address?.site_name || ''}
+                    onChange={e => setData('address', { ...data.address, site_name: e.target.value })}
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Region Name (optional)"
+                    value={data.address?.region_name || ''}
+                    onChange={e => setData('address', { ...data.address, region_name: e.target.value })}
+                  />
+                  <Input
+                    type="number"
+                    step="0.00000001"
+                    placeholder="Latitude (optional)"
+                    value={data.address?.lat || ''}
+                    onChange={e => setData('address', { ...data.address, lat: e.target.value })}
+                  />
+                  <Input
+                    type="number"
+                    step="0.00000001"
+                    placeholder="Longitude (optional)"
+                    value={data.address?.long || ''}
+                    onChange={e => setData('address', { ...data.address, long: e.target.value })}
+                  />
+                  {/* TODO: Add suburb select and state/country if needed */}
+                </div>
+                {/* Optionally, add checkboxes for display_address_on_map and display_street_view */}
+                <div className="flex gap-4 mt-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={data.address?.display_address_on_map ?? true}
+                      onChange={e => setData('address', { ...data.address, display_address_on_map: e.target.checked })}
+                    />
+                    <span>Display address on map</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={data.address?.display_street_view ?? true}
+                      onChange={e => setData('address', { ...data.address, display_street_view: e.target.checked })}
+                    />
+                    <span>Display street view</span>
+                  </label>
+                </div>
               </div>
               {/* Dynamic Attributes */}
               <div className="space-y-2">

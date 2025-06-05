@@ -51,7 +51,66 @@ export default function PropertiesShow({ property }: any) {
               </div>
               <div>
                 <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Address</div>
-                <div className="text-zinc-900 dark:text-zinc-100">{property.address?.formatted || ''}</div>
+                <div className="text-zinc-900 dark:text-zinc-100 space-y-1">
+                  {property.address ? (
+                    <>
+                      <div><b>Street Number:</b> {property.address.street_number}</div>
+                      <div><b>Street Name:</b> {property.address.street_name}</div>
+                      <div><b>Unit Number:</b> {property.address.unit_number}</div>
+                      <div><b>Lot Number:</b> {property.address.lot_number}</div>
+                      <div><b>Site Name:</b> {property.address.site_name}</div>
+                      <div><b>Region Name:</b> {property.address.region_name}</div>
+                      <div><b>Latitude:</b> {property.address.lat}</div>
+                      <div><b>Longitude:</b> {property.address.long}</div>
+                      <div><b>Display on Map:</b> {property.address.display_address_on_map ? 'Yes' : 'No'}</div>
+                      <div><b>Display Street View:</b> {property.address.display_street_view ? 'Yes' : 'No'}</div>
+                    </>
+                  ) : (
+                    <span className="italic text-zinc-400">No address provided</span>
+                  )}
+                </div>
+              </div>
+              <div>
+                <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Beds</div>
+                <div className="text-zinc-900 dark:text-zinc-100">{property.beds}</div>
+              </div>
+              <div>
+                <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Baths</div>
+                <div className="text-zinc-900 dark:text-zinc-100">{property.baths}</div>
+              </div>
+              <div>
+                <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Parking Spaces</div>
+                <div className="text-zinc-900 dark:text-zinc-100">{property.parking_spaces}</div>
+              </div>
+              <div>
+                <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Ensuites</div>
+                <div className="text-zinc-900 dark:text-zinc-100">{property.ensuites}</div>
+              </div>
+              <div>
+                <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Garage Spaces</div>
+                <div className="text-zinc-900 dark:text-zinc-100">{property.garage_spaces}</div>
+              </div>
+              <div>
+                <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Land Size</div>
+                <div className="text-zinc-900 dark:text-zinc-100">{property.land_size} {property.land_size_unit}</div>
+              </div>
+              <div>
+                <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Building Size</div>
+                <div className="text-zinc-900 dark:text-zinc-100">{property.building_size} {property.building_size_unit}</div>
+              </div>
+              <div>
+                <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Dynamic Attributes</div>
+                <div className="text-zinc-900 dark:text-zinc-100">
+                  {property.dynamic_attributes && Object.keys(property.dynamic_attributes).length > 0 ? (
+                    <ul className="list-disc ml-4">
+                      {Object.entries(property.dynamic_attributes).map(([key, value]) => (
+                        <li key={key}><b>{key}:</b> {String(value)}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="italic text-zinc-400">None</span>
+                  )}
+                </div>
               </div>
             </div>
           </div>

@@ -68,6 +68,12 @@ class PropertyController extends Controller
      */
     public function store(StorePropertyRequest $request)
     {
+        \Log::info('PropertyController@store debug', [
+            'user' => \Auth::user(),
+            'roles' => \Auth::user() ? \Auth::user()->getRoleNames() : null,
+            'is_authenticated' => \Auth::check(),
+        ]);
+
         $data = $request->validated();
         $data['user_id'] = Auth::id();
         $data['expires_at'] = now()->addMonths(6);
@@ -78,6 +84,16 @@ class PropertyController extends Controller
         }
         if ($request->has('features')) {
             $property->features()->sync($request->input('features'));
+        }
+        // Save address if present
+        if (!empty($data['address']) && is_array($data['address'])) {
+            $addressData = $data['address'];
+            $addressData['property_id'] = $property->id;
+            // Only allow fillable fields
+            $address = new Address();
+            $fillable = $address->getFillable();
+            $filtered = array_intersect_key($addressData, array_flip($fillable));
+            Address::create($filtered);
         }
         return redirect()->route('properties.show', $property->id);
     }
