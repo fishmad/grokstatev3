@@ -23,8 +23,10 @@ return new class extends Migration
             $table->integer('beds')->nullable();
             $table->integer('baths')->nullable();
             $table->integer('parking_spaces')->nullable();
-            $table->integer('land_size_sqm')->nullable();
-            $table->integer('building_size_sqm')->nullable();
+            $table->decimal('land_size', 12, 2)->nullable();
+            $table->string('land_size_unit', 10)->nullable();
+            $table->decimal('building_size', 12, 2)->nullable();
+            $table->string('building_size_unit', 10)->nullable();
             $table->integer('ensuites')->nullable();
             $table->integer('garage_spaces')->nullable();
             $table->json('dynamic_attributes')->nullable();

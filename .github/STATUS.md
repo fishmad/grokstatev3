@@ -47,6 +47,33 @@
 - **Documentation:**
   - Updated `.github/Property-Type-vs-Categories.md` with clear, lint-compliant standing order for future devs/AI.
 
+- **Database & Schema Alignment:**
+  - Identified and resolved a critical mismatch between frontend/backend field names and the database schema for property size fields.
+  - Migrated from legacy `land_size_sqm`/`building_size_sqm` integer columns to new flexible `land_size`, `land_size_unit`, `building_size`, `building_size_unit` fields (decimal + unit).
+  - Updated all relevant migrations, models, factories, and seeders to use the new fields.
+  - Dropped deprecated columns from the schema for clarity and future-proofing.
+
+- **Property Creation End-to-End Fix:**
+  - Fixed property creation form and backend so that all required fields (including address, country/state/suburb, and new size fields) are correctly validated and saved.
+  - Updated `StorePropertyRequest` and `UpdatePropertyRequest` to validate all new fields.
+  - Ensured the React form coerces select values to the correct types and flattens address fields for backend compatibility.
+  - Confirmed that property creation now works in both the UI and automated feature tests.
+
+- **Testing & Debugging:**
+  - Moved and updated property creation tests to Feature tests for proper context.
+  - Fixed test setup to use correct foreign keys and required data.
+  - Added missing fillable fields to models to allow mass assignment in tests and seeding.
+  - Used log inspection and error tracing to quickly identify and resolve backend issues.
+
+- **Documentation & Codebase Consistency:**
+  - Updated `.github/BUILD_ORDER.md` and `.github/Property-Type-vs-Categories.md` to reflect the new schema and clarify the distinction between property types and categories.
+  - Ensured all Copilot prompts, migration instructions, and model/field lists match the new schema and naming conventions.
+  - Updated `properties-show.tsx` and related UI to display the new flexible fields and remove references to deprecated columns.
+
+- **General Progress:**
+  - Confirmed that the property creation workflow is robust, with validation, error handling, and flash messages working as intended.
+  - The project is now in a stable state for further feature development, UI polish, and advanced business logic.
+
 ## Next Steps / Further Potential Work
 
 - **UI/UX Polish:**

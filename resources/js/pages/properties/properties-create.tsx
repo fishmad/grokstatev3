@@ -152,36 +152,32 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
     e.preventDefault();
     setSuccessMessage(null); // Clear previous success
 
-    console.log('Submitting form');
-
     // Get postcode from selected suburb
     const selectedSuburb = suburbs.find(su => String(su.id) === String(data.suburb_id));
 
-    // Only set street_name and postcode if they are non-empty
+    // Flatten all address fields
     const payload: Record<string, any> = { ...data };
-    if (data.address?.street_name) payload.street_name = data.address.street_name;
-    if (data.address?.street_number) payload.street_number = data.address.street_number;
-    if (data.address?.unit_number) payload.unit_number = data.address.unit_number;
-    if (data.address?.lat) payload.lat = data.address.lat;
-    if (data.address?.long) payload.long = data.address.long;
+    if (data.address) {
+      const addressFields = [
+        'street_name', 'street_number', 'unit_number', 'lot_number', 'site_name', 'region_name',
+        'lat', 'long', 'display_address_on_map', 'display_street_view'
+      ];
+      addressFields.forEach(field => {
+        if (data.address[field as keyof AddressForm] !== undefined) payload[field] = data.address[field as keyof AddressForm];
+      });
+    }
     if (selectedSuburb?.postcode) payload.postcode = selectedSuburb.postcode;
-
-    // Remove nested address from payload to avoid confusion
+    // Remove nested address from payload
     delete payload.address;
-
-    console.log('Payload to submit:', payload);
 
     post('/properties', payload, {
       onSuccess: () => {
         setSuccessMessage('Property created successfully!');
-        // Optionally reset form fields here
-        // reset();
       },
       onError: (errors: any) => {
         setSuccessMessage(null);
         console.error('Form submission error:', errors);
       },
-      // preserveScroll: true, // Optional: to prevent scrolling to top on validation errors
     });
   };
 
@@ -259,11 +255,11 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
               </div>
               {/* Property Type (with help text) */}
               <div className="space-y-2">
-                <label htmlFor="property_type_id" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <label id="property_type_id-label" htmlFor="property_type_id" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                   Property Type <span className="text-xs text-zinc-500">(structure)</span>
                 </label>
                 <Select value={data.property_type_id} onValueChange={val => setData('property_type_id', val)} required>
-                  <SelectTrigger>
+                  <SelectTrigger aria-labelledby="property_type_id-label">
                     <SelectValue placeholder="Select Property Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -278,9 +274,9 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
               </div>
               {/* Listing Method */}
               <div className="space-y-2">
-                <label htmlFor="listing_method_id" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Listing Method</label>
+                <label id="listing_method_id-label" htmlFor="listing_method_id" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Listing Method</label>
                 <Select value={data.listing_method_id} onValueChange={val => setData('listing_method_id', val)} required>
-                  <SelectTrigger>
+                  <SelectTrigger aria-labelledby="listing_method_id-label">
                     <SelectValue placeholder="Select Listing Method" />
                   </SelectTrigger>
                   <SelectContent>
@@ -292,9 +288,9 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
               </div>
               {/* Listing Status */}
               <div className="space-y-2">
-                <label htmlFor="listing_status_id" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Listing Status</label>
+                <label id="listing_status_id-label" htmlFor="listing_status_id" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Listing Status</label>
                 <Select value={data.listing_status_id} onValueChange={val => setData('listing_status_id', val)}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-labelledby="listing_status_id-label">
                     <SelectValue placeholder="Select Listing Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -334,7 +330,7 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
                   <div className="flex gap-2">
                     <Input id="land_size" type="number" min="0" name="land_size" value={data.land_size || ''} onChange={e => setData('land_size', e.target.value)} placeholder="Land Size" />
                     <Select value={data.land_size_unit || ''} onValueChange={val => setData('land_size_unit', val)}>
-                      <SelectTrigger>
+                      <SelectTrigger id="land_size_unit">
                         <SelectValue placeholder="Unit" />
                       </SelectTrigger>
                       <SelectContent>
@@ -349,7 +345,7 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
                   <div className="flex gap-2">
                     <Input id="building_size" type="number" min="0" name="building_size" value={data.building_size || ''} onChange={e => setData('building_size', e.target.value)} placeholder="Building Size" />
                     <Select value={data.building_size_unit || ''} onValueChange={val => setData('building_size_unit', val)}>
-                      <SelectTrigger>
+                      <SelectTrigger id="building_size_unit">
                         <SelectValue placeholder="Unit" />
                       </SelectTrigger>
                       <SelectContent>
@@ -549,7 +545,7 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
                 <select
                   className="input input-bordered w-full"
                   value={data.country_id || ''}
-                  onChange={e => setData('country_id', e.target.value)}
+                  onChange={e => setData('country_id', e.target.value ? Number(e.target.value) : '')}
                   required
                 >
                   <option value="">Select Country</option>
@@ -557,13 +553,14 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
+                {errors.country_id && <p className="text-xs text-red-500 mt-1">{errors.country_id}</p>}
               </div>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">State</label>
                 <select
                   className="input input-bordered w-full"
                   value={data.state_id || ''}
-                  onChange={e => setData('state_id', e.target.value)}
+                  onChange={e => setData('state_id', e.target.value ? Number(e.target.value) : '')}
                   required
                   disabled={!data.country_id}
                 >
@@ -572,13 +569,14 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
                 </select>
+                {errors.state_id && <p className="text-xs text-red-500 mt-1">{errors.state_id}</p>}
               </div>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Suburb</label>
                 <select
                   className="input input-bordered w-full"
                   value={data.suburb_id || ''}
-                  onChange={e => setData('suburb_id', e.target.value)}
+                  onChange={e => setData('suburb_id', e.target.value ? Number(e.target.value) : '')}
                   required
                   disabled={!data.state_id}
                 >
@@ -587,6 +585,7 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
                     <option key={su.id} value={su.id}>{su.name} ({su.postcode})</option>
                   ))}
                 </select>
+                {errors.suburb_id && <p className="text-xs text-red-500 mt-1">{errors.suburb_id}</p>}
               </div>
               {/* Postcode input: show if no suburb is selected or selected suburb has no postcode */}
               {(!data.suburb_id || !suburbs.find(su => String(su.id) === String(data.suburb_id))?.postcode) && (

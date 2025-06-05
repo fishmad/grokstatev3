@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class ListingMethod extends Model
 {
-    //
+    protected $fillable = ['id', 'name'];
 }

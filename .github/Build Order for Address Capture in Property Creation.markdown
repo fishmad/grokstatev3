@@ -16,8 +16,8 @@ The goal is to capture Country, State, and Suburb when a user creates a property
 - **countries**: `id`, `name`, `iso_code`, `timestamps`
 - **states**: `id`, `country_id`, `name`, `iso_code`, `timestamps`
 - **suburbs**: `id`, `state_id`, `name`, `postcode`, `timestamps`
-- **addresses**: `id`, `property_id`, `suburb_id` (nullable), `street_number`, `street_name`, `unit_number` (nullable), `lat` (nullable), `long` (nullable), `display_address_on_map`, `display_street_view`, `timestamps`
-- **properties**: `id`, `title`, `slug`, `property_type_id`, `description`, `expires_at`, `user_id`, `timestamps`, etc.
+- **addresses**: `id`, `property_id`, `suburb_id` (nullable), `street_number`, `street_name`, `unit_number` (nullable), `lot_number` (nullable), `site_name` (nullable), `region_name` (nullable), `lat` (nullable), `long` (nullable), `display_address_on_map`, `display_street_view`, `timestamps`
+- **properties**: `id`, `title`, `slug`, `property_type_id`, `description`, `expires_at`, `user_id`, `beds`, `baths`, `parking_spaces`, `ensuites`, `garage_spaces`, `land_size`, `land_size_unit`, `building_size`, `building_size_unit`, `dynamic_attributes`, `is_free`, `timestamps`, etc.
 
 **Requirements**:
 - Frontend form with Google Places API autofill and manual dropdowns for Country, State, Suburb.
@@ -68,12 +68,12 @@ Implement the property creation form with address autofill and cascading dropdow
 ### Copilot Prompts
 ```
 // In VS Code, create resources/ts/pages/properties/properties-create.tsx
-/* Copilot: Generate a React form using ShadCN/UI components (Input, Select, Button) with TypeScript. Include fields for title, description, property_type_id (select), street_number, street_name, unit_number, country_id (select), state_id (select), suburb_id (select). Use AddressAutofill component for Google Places API. Fetch states and suburbs dynamically via /api/states/{country} and /api/suburbs/{state}. Submit to /properties via Inertia.post */
+/* Copilot: Generate a React form using ShadCN/UI components (Input, Select, Button) with TypeScript. Include fields for title, description, property_type_id (select), street_number, street_name, unit_number, lot_number, site_name, region_name, country_id (select), state_id (select), suburb_id (select), land_size, land_size_unit, building_size, building_size_unit, beds, baths, parking_spaces, ensuites, garage_spaces, dynamic_attributes, slug, prices, media. Use AddressAutofill component for Google Places API. Fetch states and suburbs dynamically via /api/states/{country} and /api/suburbs/{state}. Submit to /properties via Inertia.post */
 ```
 
 ```
 // In VS Code, create resources/ts/components/address-autofill.tsx
-/* Copilot: Generate a React component with TypeScript for Google Places API autofill. Use an Input component from ShadCN/UI with id="address-input". Extract street_number, street_name, suburb, postcode, state, country, lat, long from the selected place. Call onSelect callback with these values. Fetch matching country_id, state_id, suburb_id via /api/resolve-location */
+/* Copilot: Generate a React component with TypeScript for Google Places API autofill. Use an Input component from ShadCN/UI with id="address-input". Extract street_number, street_name, unit_number, lot_number, site_name, region_name, suburb, postcode, state, country, lat, long from the selected place. Call onSelect callback with these values. Fetch matching country_id, state_id, suburb_id via /api/resolve-location */
 ```
 
 ### Explanation for AI
@@ -86,7 +86,7 @@ Implement the property creation form with address autofill and cascading dropdow
 - **address-autofill.tsx**:
   - Use `useRef` for the input element and Google Places Autocomplete instance.
   - Initialize Autocomplete with `fields: ['address_components', 'geometry']` and `types: ['address']`.
-  - Parse `address_components` to extract `street_number`, `street_name`, `suburb`, `postcode`, `state`, `country`.
+  - Parse `address_components` to extract `street_number`, `street_name`, `unit_number`, `lot_number`, `site_name`, `region_name`, `suburb`, `postcode`, `state`, `country`.
   - Extract `lat` and `long` from `geometry.location`.
   - Call `/api/resolve-location` to get `country_id`, `state_id`, `suburb_id` for dropdowns.
   - Clean up event listeners on unmount.
@@ -132,12 +132,12 @@ php artisan make:model Property -m
 
 ```
 // In VS Code, open app/Models/Address.php
-/* Copilot: Generate an Eloquent model for Address with fillable property_id, suburb_id, street_number, street_name, unit_number, lat, long, display_address_on_map, display_street_view. Define belongsTo relationships to Property and Suburb */
+/* Copilot: Generate an Eloquent model for Address with fillable property_id, suburb_id, street_number, street_name, unit_number, lot_number, site_name, region_name, lat, long, display_address_on_map, display_street_view. Define belongsTo relationships to Property and Suburb */
 ```
 
 ```
 // In VS Code, open app/Models/Property.php
-/* Copilot: Generate an Eloquent model for Property with fillable title, description, property_type_id, slug, expires_at, user_id. Define hasOne relationship to Address, belongsTo to PropertyType and User */
+/* Copilot: Generate an Eloquent model for Property with fillable title, description, property_type_id, listing_method_id, listing_status_id, beds, baths, parking_spaces, ensuites, garage_spaces, land_size, land_size_unit, building_size, building_size_unit, dynamic_attributes, slug, expires_at, user_id. Define hasOne relationship to Address, belongsTo to PropertyType and User */
 ```
 
 ### Explanation for AI
@@ -170,25 +170,25 @@ php artisan make:request StorePropertyRequest
 ### Copilot Prompts
 ```
 // In VS Code, open app/Http/Controllers/PropertyController.php
-/* Copilot: Generate a Laravel resource controller with create and store methods. For create, return Inertia response rendering properties-create.tsx with propertyTypes and countries. For store, use StorePropertyRequest. Resolve country_name, state_name, suburb_name, postcode to suburb_id using firstOrCreate. Create Property with title, description, property_type_id, slug (from title), expires_at (now + 6 months), user_id (auth). Create Address with suburb_id, street_number, street_name, unit_number, lat, long. Redirect to properties.show */
+/* Copilot: Generate a Laravel resource controller with create and store methods. For create, return Inertia response rendering properties-create.tsx with propertyTypes and countries. For store, use StorePropertyRequest. Resolve country_id, state_id, suburb_id using validated input. Create Property with title, description, property_type_id, listing_method_id, listing_status_id, beds, baths, parking_spaces, ensuites, garage_spaces, land_size, land_size_unit, building_size, building_size_unit, dynamic_attributes, slug (from title), expires_at (now + 6 months), user_id (auth). Create Address with suburb_id, street_number, street_name, unit_number, lot_number, site_name, region_name, lat, long, display_address_on_map, display_street_view. Redirect to properties.show */
 ```
 
 ```
 // In VS Code, open app/Http/Requests/StorePropertyRequest.php
-/* Copilot: Generate a Laravel form request with authorize returning auth()->check(). Define rules: title (required, string, max:255), description (required, string), property_type_id (required, exists:property_types,id), street_number (nullable, string, max:50), street_name (required, string, max:255), unit_number (nullable, string, max:50), country_name (required, string, max:100), state_name (required, string, max:100), suburb_name (required, string, max:100), postcode (required, string, max:20), lat (nullable, numeric), long (nullable, numeric) */
+/* Copilot: Generate a Laravel form request with authorize returning auth()->check(). Define rules: title (required, string, max:255), description (required, string), property_type_id (required, exists:property_types,id), listing_method_id (required, exists:listing_methods,id), listing_status_id (required, exists:listing_statuses,id), street_number (nullable, string, max:50), street_name (required, string, max:255), unit_number (nullable, string, max:50), lot_number (nullable, string, max:50), site_name (nullable, string, max:255), region_name (nullable, string, max:255), country_id (required, exists:countries,id), state_id (required, exists:states,id), suburb_id (required, exists:suburbs,id), postcode (required, string, max:20), lat (nullable, numeric), long (nullable, numeric), display_address_on_map (nullable, boolean), display_street_view (nullable, boolean), beds (nullable, integer, min:0), baths (nullable, integer, min:0), parking_spaces (nullable, integer, min:0), ensuites (nullable, integer, min:0), garage_spaces (nullable, integer, min:0), land_size (nullable, numeric, min:0), land_size_unit (nullable, string, max:10), building_size (nullable, numeric, min:0), building_size_unit (nullable, string, max:10), dynamic_attributes (nullable, array), slug (nullable, string, max:255), prices (nullable, array), media (nullable, array) */
 ```
 
 ### Explanation for AI
 - **PropertyController**:
-  - `create`: Fetch `PropertyType` and `Country` records for form dropdowns.
+  - `create`: Fetch `PropertyType`, `ListingMethod`, `ListingStatus`, and `Country` records for form dropdowns.
   - `store`:
-    - Use `firstOrCreate` to resolve `country_name` to `Country`, `state_name` to `State` (linked to `country_id`), and `suburb_name`, `postcode` to `Suburb` (linked to `state_id`).
-    - Create `Property` with validated fields, generate `slug` using `Str::slug`, set `expires_at` to 6 months from now, assign `user_id` from `auth()->id()`.
-    - Create `Address` with resolved `suburb_id` and other fields.
-    - Redirect to `properties.show` with the property’s `slug`.
+    - Use validated input for all fields, including new flexible size/unit fields.
+    - Create `Property` with all relevant fields, generate `slug` using `Str::slug`, set `expires_at` to 6 months from now, assign `user_id` from `auth()->id()`.
+    - Create `Address` with resolved `suburb_id` and all address fields.
+    - Redirect to `properties.show` with the property’s `id`.
 - **StorePropertyRequest**:
   - Authorize authenticated users.
-  - Validate fields, ensuring `country_name`, `state_name`, `suburb_name`, `postcode` are required to resolve `suburb_id`.
+  - Validate all fields, including new flexible size/unit fields.
 
 ---
 
@@ -309,7 +309,7 @@ php artisan make:test PropertyCreationTest --unit
 ### Copilot Prompt
 ```
 // In VS Code, open tests/Feature/PropertyCreationTest.php
-/* Copilot: Generate a PHPUnit test for PropertyController@store. Test: authenticated user submits valid form with title, description, property_type_id, street_number, street_name, country_name, state_name, suburb_name, postcode. Assert Property and Address are created, Address has correct suburb_id, Property has expires_at (6 months from now) */
+/* Copilot: Generate a PHPUnit test for PropertyController@store. Test: authenticated user submits valid form with title, description, property_type_id, listing_method_id, listing_status_id, street_number, street_name, unit_number, lot_number, site_name, region_name, country_id, state_id, suburb_id, postcode, lat, long, beds, baths, parking_spaces, ensuites, garage_spaces, land_size, land_size_unit, building_size, building_size_unit, dynamic_attributes, slug, prices, media. Assert Property and Address are created, Address has correct suburb_id, Property has expires_at (6 months from now) */
 ```
 
 ### Run Tests
@@ -342,10 +342,12 @@ php artisan test
   - `grokstatev3/app/Models/Property.php`
   - `grokstatev3/app/Http/Controllers/PropertyController.php`
   - `grokstatev3/app/Http/Requests/StorePropertyRequest.php`
+  - `grokstatev3/app/Http/Requests/UpdatePropertyRequest.php`
   - `grokstatev3/routes/web.php` (Web routes)
   - `grokstatev3/routes/api.php` (API routes)
 - **Database**:
   - `grokstatev3/database/migrations/2025_06_05_000000_add_unique_constraints_to_location_tables.php`
+  - `grokstatev3/database/migrations/2025_06_05_000001_add_property_details_columns_to_properties_table.php`
   - `grokstatev3/database/seeders/CountrySeeder.php`
 - **Tests**:
   - `grokstatev3/tests/Feature/PropertyCreationTest.php`
