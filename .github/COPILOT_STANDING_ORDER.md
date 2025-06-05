@@ -224,22 +224,13 @@ Copilot MUST generate code that leverages the project’s tech stack and adheres
 
 ### Inertia.js
 - Return `Inertia::render()` from controllers with props for React components, using the updated view paths.
+- **Note**: The project uses `@inertiajs/react` (version 1.0.0 or higher), which bundles the core Inertia.js functionality. The standalone `@inertiajs/inertia` package is **not** required and should not be installed or imported.
+- Prioritize the `useForm` hook from `@inertiajs/react` for all form submissions, including those with file uploads. It handles form state, validation errors, and `FormData` creation automatically.
   ```php
   // app/Http/Controllers/PropertyController.php
-  public function index() {
-      return Inertia::render('properties/properties_index', [
-          'properties' => Property::with('address')->paginate(),
-      ]);
-  }
-  ```
-- Use TypeScript props in React components.
-  ```tsx
-  // resources/ts/pages/properties/properties_index.tsx
-  type Props = {
-      properties: { data: Property[] };
-  };
-  export default function PropertiesIndex({ properties }: Props) {
-      return <div>{properties.data.map(p => <div>{p.title}</div>)}</div>;
+  public function store(StorePropertyRequest $request) {
+      $property = Property::create($request->validated() + ['expires_at' => now()->addMonths(6)]);
+      return Inertia::render('properties/properties_show', ['property' => $property]);
   }
   ```
 

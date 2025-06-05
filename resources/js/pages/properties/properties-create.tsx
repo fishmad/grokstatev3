@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Keep useEffect if used elsewhere
 import { Head, useForm } from '@inertiajs/react';
-import { Inertia } from '@inertiajs/inertia';
 import AppLayout from '@/layouts/app-layout';
 import AddressAutofill from '@/components/address-autofill';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,7 @@ const breadcrumbs = [
 ];
 
 export default function PropertiesCreate({ propertyTypes, listingMethods, listingStatuses, categoryGroups, featureGroups }: any) {
-  const { data, setData, post, processing, errors } = useForm({
+  const { data, setData, post, processing, errors, progress } = useForm({ // Add progress for file uploads
     title: '',
     description: '',
     property_type_id: '',
@@ -40,40 +39,39 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
     land_size_unit: '',
     building_size: '',
     building_size_unit: '',
-    dynamic_attributes: '',
+    dynamic_attributes: '', // This will be a JSON string
     prices: [],
-    slug: '', // Add slug to form state
+    slug: '',
+    media: [] as File[], // Changed from FileList | null to File[]
   });
-  const [media, setMedia] = React.useState<FileList | null>(null);
 
   // Dynamic Attributes state for key-value pairs
   const [attributes, setAttributes] = useState<{ key: string; value: string }[]>([]);
 
   // Update data.dynamic_attributes whenever attributes changes
-  React.useEffect(() => {
-    // Store as a JSON string to match the expected type
+  useEffect(() => {
     setData('dynamic_attributes', JSON.stringify(attributes.reduce((acc, { key, value }) => {
       if (key) acc[key] = value;
       return acc;
     }, {} as Record<string, string>)));
-  }, [attributes]);
+  }, [attributes, setData]); // Add setData to dependency array
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        value.forEach((v, i) => formData.append(`${key}[${i}]`, typeof v === 'object' ? JSON.stringify(v) : v));
-      } else if (typeof value === 'object' && value !== null) {
-        formData.append(key, JSON.stringify(value));
-      } else {
-        formData.append(key, value as string);
-      }
+    // The 'post' method from useForm will handle FormData creation internally
+    // if 'data.media' contains files.
+    post('/properties', {
+      // Optional: Add callbacks for success, error, finish
+      onSuccess: () => {
+        // e.g., redirect or show a success message
+        // data.reset(); // Optionally reset form fields
+      },
+      onError: (pageErrors) => {
+        // Errors are already available in the 'errors' object from useForm
+        console.error('Form submission error:', pageErrors);
+      },
+      // preserveScroll: true, // Optional: to prevent scrolling to top on validation errors
     });
-    if (media) {
-      Array.from(media).forEach((file, i) => formData.append('media[]', file));
-    }
-    Inertia.post('/properties', formData);
   };
 
   // Two-step category selection state
@@ -403,8 +401,16 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
                   name="media"
                   multiple
                   className="input input-bordered w-full"
-                  onChange={e => setMedia(e.target.files)}
+                  onChange={e => setData('media', e.target.files ? Array.from(e.target.files) : [])} // Convert FileList to File[]
                 />
+                {/* Display progress if available (for file uploads) */}
+                {progress && (
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-2">
+                    <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${progress.percentage}%` }}></div>
+                  </div>
+                )}
+                {/* Display media validation errors if any */}
+                {errors.media && <p className="text-xs text-red-500 mt-1">{errors.media}</p>}
               </div>
               {/* Slug */}
               <div className="space-y-2">

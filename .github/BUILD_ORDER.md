@@ -3,7 +3,7 @@
 This document outlines the step-by-step process to build a property listing website using Laravel 12.x, React 19, Inertia.js, Tailwind CSS v4.1, and ShadCN/UI in Visual Studio Code (VS Code) with GitHub Copilot assistance. It includes terminal commands, Composer commands, and Copilot prompts to expedite production. The website supports free listings for 6 months, paid upgrades, dynamic attributes, and a marketing-only focus, with a flexible schema using lookup tables and JSON columns.
 
 **Date**: June 4, 2025  
-**Tech Stack**: Laravel 12.x, React 19, Inertia.js, Tailwind CSS v4.1, ShadCN/UI, MySQL, Google Places API, Stripe/PayPal, Laravel Sanctum, Spatie Permissions  
+**Tech Stack**: Laravel 12.x, React 19, Inertia.js (specifically `@inertiajs/react` for frontend form handling and SPA functionality), Tailwind CSS v4.1, ShadCN/UI, MySQL, Google Places API, Stripe/PayPal, Laravel Sanctum, Spatie Permissions  
 **Tools**: VS Code, GitHub Copilot, Terminal, Composer, npm  
 **Project Directory**: `grokstatev3`
 
