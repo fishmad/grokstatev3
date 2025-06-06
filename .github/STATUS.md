@@ -97,6 +97,23 @@
   - Used log inspection and debug output to trace and resolve backend issues quickly.
   - Confirmed that all controller and request logic is now robust to both legacy and new frontend payloads.
 
+- **Address & Google Maps Integration (Today):**
+  - Refactored the address step in the property creation wizard to use plain text inputs for country, state, and suburb, with robust fallback and validation for missing or unknown locations.
+  - Enhanced Google Maps/Places integration: ensured all address fields (including unit number, region name, and municipality) are auto-populated and editable, and kept in sync with the map/autocomplete.
+  - Updated `GoogleAddressMapInput` to allow mapping of Google address components (e.g., administrative_area_level_1/2/3) to form fields, and enabled recycling of the "Site Name" field for municipality or state as needed.
+  - Ensured that address fields and relational IDs (country_id, state_id, suburb_id) are set when possible, but gracefully handle missing or unknown values for partial/incomplete listings.
+  - Discussed and implemented backend and frontend validation strategies for missing address IDs, allowing properties to be created with incomplete address data and enabling later correction.
+  - Improved frontend robustness: all code now gracefully handles missing IDs and avoids runtime errors if address/location data is incomplete.
+
+- **Documentation & Codebase Consistency:**
+  - Updated `.github/BUILD_ORDER.md` and `.github/Property-Type-vs-Categories.md` to reflect the new schema and clarify the distinction between property types and categories.
+  - Ensured all Copilot prompts, migration instructions, and model/field lists match the new schema and naming conventions.
+  - Updated `properties-show.tsx` and related UI to display the new flexible fields and remove references to deprecated columns.
+
+- **General Progress:**
+  - Confirmed that the property creation workflow is robust, with validation, error handling, and flash messages working as intended.
+  - The project is now in a stable state for further feature development, UI polish, and advanced business logic.
+
 ## Issues Still Encountered / To Do Tomorrow
 
 - **Final End-to-End Test:**

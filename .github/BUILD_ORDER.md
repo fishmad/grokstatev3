@@ -817,6 +817,34 @@ php artisan migrate
 
 ---
 
+## Key Learnings & Best Practices (as of June 6, 2025)
+
+- **Address & Location Handling:**
+  - When using Google Maps/Places API, always map address components (e.g., administrative_area_level_1/2/3) to your schema fields explicitly. Decide which field (e.g., state, region, municipality) should be mapped to which form/database field, and document this in both code and UI.
+  - Allow for partial/incomplete addresses in the frontend and backend. Accept listings with missing suburb/state/country IDs, and provide clear validation and user feedback. This enables capturing leads even if the user doesn't know the full address.
+  - In the frontend, always check for missing/null IDs before using them (e.g., for dropdowns or lookups) to avoid runtime errors. Use fallback logic to display names or placeholders if IDs are missing.
+  - In the backend, resolve text fields to IDs where possible, but allow nulls and provide admin tools for later correction. Do not block property creation if only partial address data is available (unless business rules require it).
+  - Recycle existing form fields (e.g., "Site Name") for Google address components like municipality or region, but document the mapping for future devs.
+
+- **Frontend/Backend Sync:**
+  - Keep frontend and backend field names and data structures in sync, especially for nested objects like address and price. Use mapping helpers and type-safe interfaces in React/TypeScript.
+  - When changing schema or validation rules, update both the backend FormRequest and the frontend form logic at the same time.
+
+- **UI/UX & Validation:**
+  - Provide clear help text, tooltips, and inline validation for complex fields (like address/location) to guide users and reduce errors.
+  - Consider allowing users to submit incomplete listings and follow up later for missing details, rather than blocking submission.
+  - Add robust error handling for async actions (e.g., dropdown fetches, address resolution) and display user-friendly messages.
+
+- **Testing & Debugging:**
+  - Use log inspection and debug output to quickly trace and resolve backend issues, especially with nested or relational data.
+  - Add automated feature tests for property creation, focusing on address and price validation, and edge cases with missing or partial data.
+
+- **Refactoring & Maintainability:**
+  - Refactor address/location logic into custom hooks or smaller components for clarity and maintainability as the project grows.
+  - Document any non-obvious mappings or business rules in STATUS.md and COPILOT_STANDING_ORDER.md for future devs/AI.
+
+---
+
 ## Conclusion
 
 This build order provides a clear, actionable roadmap for developing your property listing website in VS Code with GitHub Copilot. It leverages Laravel 12.x’s features, integrates React with Inertia.js for a modern frontend, and uses Tailwind CSS v4.1 and ShadCN/UI for styling. The schema supports flexibility with lookup tables and JSON columns, and the workflow ensures free listings, paid upgrades, and a marketing-only focus. Run the terminal commands, follow the Copilot prompts, and refer to the file paths to expedite production.
