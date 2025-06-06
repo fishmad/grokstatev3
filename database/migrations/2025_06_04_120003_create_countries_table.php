@@ -17,6 +17,14 @@ return new class extends Migration
             $table->string('iso_code');
             $table->timestamps();
         });
+
+        // Insert default country: Australia
+        \DB::table('countries')->insert([
+            'name' => 'Australia',
+            'iso_code' => 'AU',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     /**

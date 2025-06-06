@@ -202,42 +202,31 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
     // Remove media from submission (handled in step 2)
     delete submission.media;
 
-    // Do NOT flatten address fields; keep as nested object for backend validation
-    // if (data.address) {
-    //   const addressFields = [
-    //     'street_number', 'street_name', 'unit_number', 'lot_number', 'site_name', 'region_name',
-    //     'lat', 'long', 'display_address_on_map', 'display_street_view'
-    //   ];
-    //   addressFields.forEach(field => {
-    //     submission[field] = data.address[field as keyof AddressForm] ?? '';
-    //   });
-    //   delete submission.address;
-    // }
+    // Ensure location fields are nested under address
+    if (!submission.address) submission.address = {};
+    ['country_id', 'state_id', 'suburb_id', 'postcode'].forEach(field => {
+      if (submission[field]) {
+        submission.address[field] = submission[field];
+        delete submission[field];
+      }
+    });
 
     // Set postcode from selected suburb if available
-    const selectedSuburb = suburbs.find(su => String(su.id) === String(data.suburb_id));
-    if (selectedSuburb?.postcode) submission.postcode = selectedSuburb.postcode;
+    const selectedSuburb = suburbs.find(su => String(su.id) === String(submission.address.suburb_id));
+    if (selectedSuburb?.postcode) submission.address.postcode = selectedSuburb.postcode;
 
     // Send price as JSON string if defined
-    if (data.price) {
-      submission.price = JSON.stringify(data.price);
+    if (submission.price) {
+      submission.price = JSON.stringify(submission.price);
     }
 
     // Send dynamic_attributes as JSON string
-    submission.dynamic_attributes = JSON.stringify(data.dynamic_attributes ?? {});
+    submission.dynamic_attributes = JSON.stringify(submission.dynamic_attributes ?? {});
 
     // Debug: log the submission object
     console.log('Submitting property:', submission);
 
-    post('/properties', submission, {
-      onSuccess: (page) => {
-        const propertyId = (page.props as any).property?.id || (page.props as any).id || (page.props as any).data?.id;
-        if (propertyId) {
-          window.location.href = `/properties/${propertyId}/media`;
-        } else {
-          setSuccessMessage('Property created, but could not determine property ID for media upload.');
-        }
-      },
+    post('/properties', {
       onError: (errors: any) => {
         setSuccessMessage(null);
         console.error('Form submission error:', errors);

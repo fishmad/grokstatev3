@@ -145,6 +145,24 @@ class PropertyController extends Controller
             $data = $request->validated();
             \Log::info('PropertyController@store validated data', $data);
 
+            // --- Address lookup and ID resolution ---
+            $addressData = $data['address'];
+            $country = Country::where('name', $addressData['country'] ?? '')->first();
+            $state = null;
+            $suburb = null;
+            if ($country) {
+                $state = State::where('name', $addressData['state'] ?? '')
+                    ->where('country_id', $country->id)
+                    ->first();
+                if ($state) {
+                    $suburb = Suburb::where('name', $addressData['suburb'] ?? '')
+                        ->where('state_id', $state->id)
+                        ->where('postcode', $addressData['postcode'] ?? null)
+                        ->first();
+                }
+            }
+            // ---
+
             // Create property
             $property = Property::create([
                 'title' => $data['title'],
@@ -171,17 +189,19 @@ class PropertyController extends Controller
 
             // Create address (use nested address fields)
             $property->address()->create([
-                'suburb_id' => $data['address']['suburb_id'] ?? null,
-                'street_number' => $data['address']['street_number'] ?? null,
-                'street_name' => $data['address']['street_name'] ?? null,
-                'unit_number' => $data['address']['unit_number'] ?? null,
-                'lot_number' => $data['address']['lot_number'] ?? null,
-                'site_name' => $data['address']['site_name'] ?? null,
-                'region_name' => $data['address']['region_name'] ?? null,
-                'lat' => $data['address']['lat'] ?? null,
-                'long' => $data['address']['long'] ?? null,
-                'display_address_on_map' => $data['address']['display_address_on_map'] ?? true,
-                'display_street_view' => $data['address']['display_street_view'] ?? true,
+                'suburb_id' => $suburb ? $suburb->id : null,
+                'state_id' => $state ? $state->id : null,
+                'country_id' => $country ? $country->id : null,
+                'street_number' => $addressData['street_number'] ?? null,
+                'street_name' => $addressData['street_name'] ?? null,
+                'unit_number' => $addressData['unit_number'] ?? null,
+                'lot_number' => $addressData['lot_number'] ?? null,
+                'site_name' => $addressData['site_name'] ?? null,
+                'region_name' => $addressData['region_name'] ?? null,
+                'lat' => $addressData['lat'] ?? null,
+                'long' => $addressData['long'] ?? null,
+                'display_address_on_map' => $addressData['display_address_on_map'] ?? true,
+                'display_street_view' => $addressData['display_street_view'] ?? true,
             ]);
 
             \Log::info('Address created for property', ['property_id' => $property->id]);
@@ -223,8 +243,18 @@ class PropertyController extends Controller
      */
     public function show(Property $property)
     {
-        // NEW: Load price relationship
-        $property->load(['address', 'propertyType', 'listingMethod', 'listingStatus', 'categories', 'features', 'price', 'media']);
+        $property->load([
+            'address.suburb.state.country',
+            'address.state',
+            'address.country',
+            'propertyType',
+            'listingMethod',
+            'listingStatus',
+            'categories',
+            'features',
+            'price',
+            'media',
+        ]);
         return Inertia::render('properties/properties-show', [
             'property' => $property
         ]);
@@ -237,13 +267,20 @@ class PropertyController extends Controller
     {
         // NEW: Load price relationship
         $property->load(['address', 'propertyType', 'listingMethod', 'listingStatus', 'categories', 'features', 'price', 'media']);
-        return Inertia::render('properties/properties-edit', [ // Use slash, not dot
+        return Inertia::render('properties/properties-edit', [
             'property' => $property,
             'propertyTypes' => PropertyType::all(),
             'listingMethods' => ListingMethod::all(),
             'listingStatuses' => ListingStatus::all(),
-            'categories' => Category::all(),
-            'features' => Feature::all(),
+            // Eager load categories with children for hierarchy (match create)
+            'categoryGroups' => \App\Models\CategoryType::with(['categories' => function($q) {
+                $q->whereNull('parent_id')->with('children');
+            }])->get(),
+            'featureGroups' => \App\Models\FeatureGroup::with('features')->get(),
+            // Add geolocation data for address dropdowns
+            'countries' => Country::all(),
+            'states' => $property->address && $property->address->country_id ? State::where('country_id', $property->address->country_id)->get() : [],
+            'suburbs' => $property->address && $property->address->state_id ? Suburb::where('state_id', $property->address->state_id)->get() : [],
         ]);
     }
 
@@ -276,11 +313,11 @@ class PropertyController extends Controller
             ]);
 
             // Update address (use nested address fields)
-            if ($property->address) {
+            if (isset($data['address']) && $property->address) {
                 $property->address->update([
-                    'suburb_id' => $data['address']['suburb_id'],
+                    'suburb_id' => $data['address']['suburb_id'] ?? null,
                     'street_number' => $data['address']['street_number'] ?? null,
-                    'street_name' => $data['address']['street_name'],
+                    'street_name' => $data['address']['street_name'] ?? null,
                     'unit_number' => $data['address']['unit_number'] ?? null,
                     'lot_number' => $data['address']['lot_number'] ?? null,
                     'site_name' => $data['address']['site_name'] ?? null,

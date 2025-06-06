@@ -53,7 +53,9 @@ Route::middleware('auth')->group(function () {
         $propertyTypes = \App\Models\PropertyType::all();
         $listingMethods = \App\Models\ListingMethod::all();
         $listingStatuses = \App\Models\ListingStatus::all();
-        $categoryGroups = \App\Models\Category::with('children')->get()->groupBy('category_type_id')->values();
+        $categoryGroups = \App\Models\CategoryType::with(['categories' => function($q) {
+            $q->whereNull('parent_id')->with('children');
+        }])->get();
         $featureGroups = \App\Models\FeatureGroup::with('features')->get();
         return Inertia::render('properties/properties-create-wizard', [
             'propertyTypes' => $propertyTypes,

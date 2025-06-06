@@ -152,7 +152,7 @@ export default function PropertiesIndex({ properties, filters, countries, states
                     {properties.data.length === 0 && (
                         <div className="col-span-full text-center text-gray-500">No properties found.</div>
                     )}
-                    {properties.data.map((property) => (
+                    {properties.data.map((property: any) => (
                         <div key={property.id} className="border p-4 rounded">
                             <h2 className="text-xl font-semibold">{property.title}</h2>
                             <p>{property.description}</p>
@@ -164,6 +164,18 @@ export default function PropertiesIndex({ properties, filters, countries, states
                                 {property.address?.suburb?.state?.country?.name ? ` ${property.address.suburb.state.country.name},` : ''}
                                 {property.address?.suburb?.postcode ? ` ${property.address.suburb.postcode}` : ''}
                             </p>
+                            <div className="grid grid-cols-2 gap-2 text-sm text-gray-700 mt-2">
+                                <div><strong>Beds:</strong> {property.beds ?? '-'}</div>
+                                <div><strong>Baths:</strong> {property.baths ?? '-'}</div>
+                                <div><strong>Parking:</strong> {property.parking_spaces ?? '-'}</div>
+                                <div><strong>Land Size:</strong> {property.land_size ? `${property.land_size} ${property.land_size_unit || ''}` : '-'}</div>
+                                <div><strong>Building Size:</strong> {property.building_size ? `${property.building_size} ${property.building_size_unit || ''}` : '-'}</div>
+                            </div>
+                            <div className="text-sm text-gray-700 mt-2">
+                              <strong>Categories:</strong> {Array.isArray(property.categories) && property.categories.length > 0
+                                ? property.categories.map((cat: any) => cat.name).join(', ')
+                                : 'None'}
+                            </div>
                             <Link href={route('properties.show', property.id)} className="text-blue-500">View Details</Link>
                         </div>
                     ))}

@@ -43,11 +43,27 @@ export default function PropertiesShow({ property }: any) {
             <div className="space-y-4">
               <div>
                 <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Categories</div>
-                <div className="text-zinc-900 dark:text-zinc-100">{property.categories?.map((cat: any) => cat.name).join(', ')}</div>
+                <div className="text-zinc-900 dark:text-zinc-100">
+                  {Array.isArray(property.categories) && property.categories.length > 0
+                    ? property.categories.map((cat: any) => cat.name).join(', ')
+                    : <span className="italic text-zinc-400">None</span>}
+                </div>
+              </div>
+              <div>
+                <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Category IDs</div>
+                <div className="text-zinc-900 dark:text-zinc-100">
+                  {Array.isArray(property.categories) && property.categories.length > 0
+                    ? property.categories.map((cat: any) => cat.id).join(', ')
+                    : <span className="italic text-zinc-400">None</span>}
+                </div>
               </div>
               <div>
                 <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Features</div>
-                <div className="text-zinc-900 dark:text-zinc-100">{property.features?.map((f: any) => f.name).join(', ')}</div>
+                <div className="text-zinc-900 dark:text-zinc-100">
+                  {Array.isArray(property.features) && property.features.length > 0
+                    ? property.features.map((f: any) => f.name).join(', ')
+                    : <span className="italic text-zinc-400">None</span>}
+                </div>
               </div>
               <div>
                 <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Address</div>
@@ -60,6 +76,10 @@ export default function PropertiesShow({ property }: any) {
                       <div><b>Lot Number:</b> {property.address.lot_number}</div>
                       <div><b>Site Name:</b> {property.address.site_name}</div>
                       <div><b>Region Name:</b> {property.address.region_name}</div>
+                      <div><b>Suburb:</b> {property.address.suburb?.name || property.address.suburb_name || property.address.suburb}</div>
+                      <div><b>State:</b> {property.address.state?.name || property.address.state_name || property.address.state}</div>
+                      <div><b>Country:</b> {property.address.country?.name || property.address.country_name || property.address.country}</div>
+                      <div><b>Post Code:</b> {property.address.suburb?.postcode || property.address.postcode}</div>
                       <div><b>Latitude:</b> {property.address.lat}</div>
                       <div><b>Longitude:</b> {property.address.long}</div>
                       <div><b>Display on Map:</b> {property.address.display_address_on_map ? 'Yes' : 'No'}</div>
@@ -101,15 +121,29 @@ export default function PropertiesShow({ property }: any) {
               <div>
                 <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Dynamic Attributes</div>
                 <div className="text-zinc-900 dark:text-zinc-100">
-                  {property.dynamic_attributes && Object.keys(property.dynamic_attributes).length > 0 ? (
-                    <ul className="list-disc ml-4">
-                      {Object.entries(property.dynamic_attributes).map(([key, value]) => (
-                        <li key={key}><b>{key}:</b> {String(value)}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <span className="italic text-zinc-400">None</span>
-                  )}
+                  {property.dynamic_attributes && typeof property.dynamic_attributes === 'string' ?
+                    (() => {
+                      try {
+                        const parsed = JSON.parse(property.dynamic_attributes);
+                        return Object.keys(parsed).length > 0 ? (
+                          <ul className="list-disc ml-4">
+                            {Object.entries(parsed).map(([key, value]) => (
+                              <li key={key}><b>{key}:</b> {String(value)}</li>
+                            ))}
+                          </ul>
+                        ) : <span className="italic text-zinc-400">None</span>;
+                      } catch {
+                        return <span className="italic text-red-400">Invalid JSON</span>;
+                      }
+                    })()
+                    : property.dynamic_attributes && Object.keys(property.dynamic_attributes).length > 0 ? (
+                      <ul className="list-disc ml-4">
+                        {Object.entries(property.dynamic_attributes).map(([key, value]) => (
+                          <li key={key}><b>{key}:</b> {String(value)}</li>
+                        ))}
+                      </ul>
+                    ) : <span className="italic text-zinc-400">None</span>
+                  }
                 </div>
               </div>
             </div>

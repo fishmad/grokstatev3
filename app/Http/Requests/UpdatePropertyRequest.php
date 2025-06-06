@@ -37,15 +37,15 @@ class UpdatePropertyRequest extends FormRequest
             'long' => 'nullable|numeric',
             'display_address_on_map' => 'nullable|boolean',
             'display_street_view' => 'nullable|boolean',
-            'beds' => 'nullable|string',
-            'baths' => 'nullable|string',
-            'parking_spaces' => 'nullable|string',
-            'ensuites' => 'nullable|string',
-            'garage_spaces' => 'nullable|string',
-            'land_size' => 'nullable|string|max:50',
-            'land_size_unit' => 'nullable|string|in:sqm,acre',
-            'building_size' => 'nullable|string|max:50',
-            'building_size_unit' => 'nullable|string|in:sqm,sqft',
+            'beds' => 'nullable|numeric',
+            'baths' => 'nullable|numeric',
+            'parking_spaces' => 'nullable|numeric',
+            'ensuites' => 'nullable|numeric',
+            'garage_spaces' => 'nullable|numeric',
+            'land_size' => 'nullable|numeric',
+            'land_size_unit' => 'nullable|string|in:sqm,acre,ha',
+            'building_size' => 'nullable|numeric',
+            'building_size_unit' => 'nullable|string|in:sqm,sqft,ha',
             'dynamic_attributes' => 'nullable|array',
             'slug' => 'nullable|string|max:255',
             'media' => ['nullable', 'array'],
@@ -76,5 +76,13 @@ class UpdatePropertyRequest extends FormRequest
                 'price' => json_decode($this->input('price'), true) ?? [],
             ]);
         }
+        // Move location fields into address if present
+        $address = $this->input('address', []);
+        foreach (['suburb_id', 'state_id', 'country_id', 'postcode'] as $field) {
+            if ($this->has($field)) {
+                $address[$field] = $this->input($field);
+            }
+        }
+        $this->merge(['address' => $address]);
     }
 }

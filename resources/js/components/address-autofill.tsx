@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
 declare global {
   interface Window {
@@ -24,10 +24,25 @@ export interface Address {
 
 export default function AddressAutofill({ value, onChange }: AddressAutofillProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  // Local state for the display string
+  const [displayValue, setDisplayValue] = useState('');
+
+  // Update displayValue when value prop changes (autofill or parent update)
+  useEffect(() => {
+    const str = [
+      value?.street_number,
+      value?.street_name,
+      value?.suburb,
+      value?.state,
+      value?.postcode,
+      value?.country
+    ].filter(Boolean).join(', ');
+    setDisplayValue(str);
+  }, [value]);
 
   useEffect(() => {
-    if (!window.google || !window.google.maps) return;
-    const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current!, {
+    if (!window.google || !window.google.maps || !inputRef.current) return;
+    const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
       types: ['address'],
       fields: ['address_components', 'geometry'],
     });
@@ -49,9 +64,20 @@ export default function AddressAutofill({ value, onChange }: AddressAutofillProp
         lng: place.geometry?.location?.lng(),
       };
       onChange(address);
+      // Update display string
+      setDisplayValue([
+        address.street_number,
+        address.street_name,
+        address.suburb,
+        address.state,
+        address.postcode,
+        address.country
+      ].filter(Boolean).join(', '));
     });
     return () => {
-      window.google.maps.event.clearInstanceListeners(inputRef.current!);
+      if (inputRef.current) {
+        window.google.maps.event.clearInstanceListeners(inputRef.current);
+      }
     };
   }, [onChange]);
 
@@ -62,8 +88,12 @@ export default function AddressAutofill({ value, onChange }: AddressAutofillProp
       type="text"
       className="input input-bordered w-full"
       placeholder="Start typing address..."
-      value={value?.street_name || ''}
-      onChange={e => onChange({ ...value, street_name: e.target.value })}
+      value={displayValue}
+      onChange={e => {
+        setDisplayValue(e.target.value);
+        // Optionally, update only street_name for now, or parse further if needed
+        onChange({ ...value, street_name: e.target.value });
+      }}
     />
   );
 }

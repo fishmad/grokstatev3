@@ -32,6 +32,8 @@ class StorePropertyRequest extends FormRequest
             'address.region_name' => 'nullable|string|max:255',
             'address.lat' => 'nullable|numeric',
             'address.long' => 'nullable|numeric',
+            'address.latitude' => 'nullable|numeric',
+            'address.longitude' => 'nullable|numeric', // Use 'longitude' to avoid confusion with 'long'
             'address.display_address_on_map' => 'nullable|boolean',
             'address.display_street_view' => 'nullable|boolean',
             // Location
@@ -40,15 +42,15 @@ class StorePropertyRequest extends FormRequest
             'suburb_id' => 'required|exists:suburbs,id',
             'postcode' => 'required|string|max:20',
             // Property details
-            'beds' => 'nullable|string',
-            'baths' => 'nullable|string',
-            'parking_spaces' => 'nullable|string',
-            'ensuites' => 'nullable|string',
-            'garage_spaces' => 'nullable|string',
-            'land_size' => 'nullable|string|max:50',
-            'land_size_unit' => 'nullable|string|in:sqm,acre',
-            'building_size' => 'nullable|string|max:50',
-            'building_size_unit' => 'nullable|string|in:sqm,sqft',
+            'beds' => 'nullable|numeric',
+            'baths' => 'nullable|numeric',
+            'parking_spaces' => 'nullable|numeric',
+            'ensuites' => 'nullable|numeric',
+            'garage_spaces' => 'nullable|numeric',
+            'land_size' => 'nullable|numeric',
+            'land_size_unit' => 'nullable|string|in:sqm,acre,ha',
+            'building_size' => 'nullable|numeric',
+            'building_size_unit' => 'nullable|string|in:sqm,sqft,ha',
             'dynamic_attributes' => 'nullable|array',
             'slug' => 'nullable|string|max:255',
             'media' => ['nullable', 'array'],
@@ -70,23 +72,23 @@ class StorePropertyRequest extends FormRequest
     protected function prepareForValidation()
     {
         \Log::info('DEBUG: StorePropertyRequest raw input', $this->all());
-        // Modified: Remove prices JSON decoding, keep dynamic_attributes
         if ($this->has('dynamic_attributes') && is_string($this->input('dynamic_attributes'))) {
             $this->merge([
                 'dynamic_attributes' => json_decode($this->input('dynamic_attributes'), true) ?? [],
             ]);
         }
-        // NEW: Handle price if sent as JSON string
         if ($this->has('price') && is_string($this->input('price'))) {
             $this->merge([
                 'price' => json_decode($this->input('price'), true) ?? [],
             ]);
         }
-        // Move suburb_id into address if present
-        if ($this->has('suburb_id')) {
-            $address = $this->input('address', []);
-            $address['suburb_id'] = $this->input('suburb_id');
-            $this->merge(['address' => $address]);
+        // Move location fields into address if present
+        $address = $this->input('address', []);
+        foreach (['suburb_id', 'state_id', 'country_id', 'postcode'] as $field) {
+            if ($this->has($field)) {
+                $address[$field] = $this->input($field);
+            }
         }
+        $this->merge(['address' => $address]);
     }
 }

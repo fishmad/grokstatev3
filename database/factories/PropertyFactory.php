@@ -50,19 +50,47 @@ class PropertyFactory extends Factory
             $state = $australia ? \App\Models\State::where('country_id', $australia->id)->inRandomOrder()->first() : null;
             $suburb = $state ? \App\Models\Suburb::where('state_id', $state->id)->inRandomOrder()->first() : null;
             $property->address()->create([
-                //'state_id' => $state ? $state->id : null,
+                'country_id' => $australia ? $australia->id : null,
+                'state_id' => $state ? $state->id : null,
                 'suburb_id' => $suburb ? $suburb->id : null,
+                'postcode' => $suburb ? $suburb->postcode : fake()->postcode(),
                 'street_number' => fake()->buildingNumber(),
                 'street_name' => fake()->streetName(),
                 'unit_number' => fake()->optional()->buildingNumber(),
                 'lot_number' => fake()->optional()->buildingNumber(),
                 'site_name' => fake()->optional()->company(),
                 'region_name' => fake()->optional()->citySuffix(),
-                'lat' => fake()->latitude(-44, -10),
-                'long' => fake()->longitude(112, 154),
+                'latitude' => fake()->latitude(-44, -10), // Australia latitude range
+                'longitude' => fake()->longitude(112, 154), // Australia longitude range
+                'lat' => fake()->latitude(-44, -10), // TBA replace with 'latitude' if needed
+                'long' => fake()->longitude(112, 154), // TBA replace with 'longitude' if needed
                 'display_address_on_map' => true,
                 'display_street_view' => true,
             ]);
+
+            // Attach random categories to the property
+            $categoryIds = \App\Models\Category::inRandomOrder()->limit(rand(1, 2))->pluck('id')->toArray();
+            if (!empty($categoryIds)) {
+                $property->categories()->sync($categoryIds);
+            }
+            // Attach random features to the property
+            $featureIds = \App\Models\Feature::inRandomOrder()->limit(rand(1, 2))->pluck('id')->toArray();
+            if (!empty($featureIds)) {
+                $property->features()->sync($featureIds);
+            }
+
+            // Optionally add random dynamic attributes to ~10% of properties
+            if (rand(1, 10) === 1) { // ~10% chance
+                $attributes = [];
+                $attrCount = rand(1, 3);
+                for ($i = 0; $i < $attrCount; $i++) {
+                    $key = 'attr_' . fake()->unique()->word();
+                    $value = fake()->sentence(2);
+                    $attributes[$key] = $value;
+                }
+                $property->dynamic_attributes = json_encode($attributes);
+                $property->save();
+            }
         });
     }
 }

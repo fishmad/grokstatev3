@@ -97,7 +97,6 @@ class Property extends Model
         'building_size',
         'building_size_unit',
         'dynamic_attributes',
-        'prices',
         'slug',
         'user_id',
         'expires_at',

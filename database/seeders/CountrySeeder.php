@@ -13,6 +13,6 @@ class CountrySeeder extends Seeder
     public function run(): void
     {
         \App\Models\Country::firstOrCreate(['name' => 'Australia'], ['iso_code' => 'AU']);
-        \App\Models\Country::firstOrCreate(['name' => 'United States'], ['iso_code' => 'US']);
+        //\App\Models\Country::firstOrCreate(['name' => 'United States'], ['iso_code' => 'US']);
     }
 }
