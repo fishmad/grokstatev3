@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
 
 // Shoalhaven region default (Nowra, NSW):
 const defaultCenter = { lat: -34.8828, lng: 150.6000 }; // Shoalhaven, Nowra
@@ -8,10 +8,11 @@ export interface GoogleAddressMapInputProps {
   onChange: (address: any) => void;
 }
 
-export default function GoogleAddressMapInput({ value, onChange }: GoogleAddressMapInputProps) {
+const GoogleAddressMapInput = forwardRef(function GoogleAddressMapInput({ value, onChange }: GoogleAddressMapInputProps, ref) {
   const mapRef = useRef<HTMLDivElement>(null);
   const autocompleteRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
+  const mapInstanceRef = useRef<any>(null);
   const [address, setAddress] = useState<string>(value?.formatted_address || '');
   const [marker, setMarker] = useState<{ lat: number; lng: number }>(
     value?.lat && value?.lng
@@ -52,6 +53,7 @@ export default function GoogleAddressMapInput({ value, onChange }: GoogleAddress
       mapId: import.meta.env.VITE_GOOGLE_MAP_ID,
       disableDefaultUI: false,
     });
+    mapInstanceRef.current = map;
     // Advanced Marker
     const { AdvancedMarkerElement } = google.maps.marker;
     markerRef.current = new AdvancedMarkerElement({
@@ -168,6 +170,17 @@ export default function GoogleAddressMapInput({ value, onChange }: GoogleAddress
     // eslint-disable-next-line
   }, [mapLoaded]);
 
+  // Expose resizeMap method to parent
+  useImperativeHandle(ref, () => ({
+    resizeMap: () => {
+      if (window.google && mapInstanceRef.current) {
+        window.google.maps.event.trigger(mapInstanceRef.current, 'resize');
+        // Optionally, re-center:
+        // mapInstanceRef.current.setCenter(marker);
+      }
+    }
+  }));
+
   return (
     <div>
       <div className="mb-2">
@@ -239,4 +252,6 @@ export default function GoogleAddressMapInput({ value, onChange }: GoogleAddress
       </div>
     </div>
   );
-}
+});
+
+export default GoogleAddressMapInput;

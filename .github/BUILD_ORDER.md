@@ -864,3 +864,12 @@ To maintain consistency and quality across the project, adhere to the following 
 - Place public-facing pages in `resources/js/pages/public/` and admin pages in `resources/js/pages/admin/`. Do not reuse public pages for admin or vice versa.
 - When adding new features, always update the folder structure and naming to match these conventions.
 - Document any exceptions or changes in STATUS.md and COPILOT_STANDING_ORDER.md.
+
+---
+
+## 3. Address & Location Resolution (Backend)
+
+- Implement a **dedicated LocationResolutionService** (see app/Services/LocationResolutionService.php) to handle country, state, and suburb lookup/creation from address strings. This allows for easy adaptation if the address lookup API/service changes in the future.
+- Use this service in PropertyController@store to resolve or create location records and return their IDs for address creation.
+- All address/location validation and merging is handled in StorePropertyRequest (see rules and prepareForValidation).
+- TBA: In future, implement **Admin Approval for New Locations**. When a new country, state, or suburb is created, flag it for admin review before it becomes active/usable in listings. This will allow for curation and prevent unwanted/duplicate locations. (See also STATUS.md)

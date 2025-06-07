@@ -23,6 +23,7 @@ use Inertia\Inertia;
 use App\Http\Requests\StorePropertyRequest;
 use App\Http\Requests\UpdatePropertyRequest;
 use Illuminate\Http\Request;
+use App\Services\LocationResolutionService;
 
 class PropertyController extends Controller
 {
@@ -145,23 +146,17 @@ class PropertyController extends Controller
             $data = $request->validated();
             \Log::info('PropertyController@store validated data', $data);
 
-            // --- Address lookup and ID resolution ---
+            // --- Address lookup and ID resolution via service ---
             $addressData = $data['address'];
-            $country = Country::where('name', $addressData['country'] ?? '')->first();
-            $state = null;
-            $suburb = null;
-            if ($country) {
-                $state = State::where('name', $addressData['state'] ?? '')
-                    ->where('country_id', $country->id)
-                    ->first();
-                if ($state) {
-                    $suburb = Suburb::where('name', $addressData['suburb'] ?? '')
-                        ->where('state_id', $state->id)
-                        ->where('postcode', $addressData['postcode'] ?? null)
-                        ->first();
-                }
-            }
+            $locationService = app(LocationResolutionService::class);
+            [$country, $state, $suburb] = $locationService->resolve($addressData);
             // ---
+
+            // Set default listing_status_id if not provided
+            $listingStatusId = $data['listing_status_id'] ?? null;
+            if (!$listingStatusId) {
+                $listingStatusId = \App\Models\ListingStatus::query()->value('id'); // get first available
+            }
 
             // Create property
             $property = Property::create([
@@ -169,7 +164,7 @@ class PropertyController extends Controller
                 'description' => $data['description'],
                 'property_type_id' => $data['property_type_id'],
                 'listing_method_id' => $data['listing_method_id'] ?? null,
-                'listing_status_id' => $data['listing_status_id'] ?? null,
+                'listing_status_id' => $listingStatusId,
                 'beds' => $data['beds'] ?? null,
                 'baths' => $data['baths'] ?? null,
                 'parking_spaces' => $data['parking_spaces'] ?? null,
@@ -188,10 +183,11 @@ class PropertyController extends Controller
             \Log::info('Property created', ['id' => $property->id]);
 
             // Create address (use nested address fields)
-            $property->address()->create([
+            $address = $property->address()->create([
                 'suburb_id' => $suburb ? $suburb->id : null,
                 'state_id' => $state ? $state->id : null,
                 'country_id' => $country ? $country->id : null,
+                'postcode' => $suburb ? $suburb->postcode : ($addressData['postcode'] ?? null),
                 'street_number' => $addressData['street_number'] ?? null,
                 'street_name' => $addressData['street_name'] ?? null,
                 'unit_number' => $addressData['unit_number'] ?? null,
@@ -199,17 +195,27 @@ class PropertyController extends Controller
                 'site_name' => $addressData['site_name'] ?? null,
                 'region_name' => $addressData['region_name'] ?? null,
                 'lat' => $addressData['lat'] ?? null,
-                'long' => $addressData['long'] ?? null,
+                'long' => $addressData['long'] ?? ($addressData['lng'] ?? null),
                 'display_address_on_map' => $addressData['display_address_on_map'] ?? true,
                 'display_street_view' => $addressData['display_street_view'] ?? true,
             ]);
+
+            if (!$suburb) {
+                \Log::error('PropertyController@store: Suburb creation or resolution failed', [
+                    'addressData' => $addressData,
+                    'country' => $country ? $country->toArray() : null,
+                    'state' => $state ? $state->toArray() : null,
+                ]);
+                return back()->withErrors(['address.suburb' => 'Failed to resolve or create suburb. Please check the suburb and postcode.']);
+            }
+            
+            \Log::info('Address record after creation', $address->toArray());
 
             \Log::info('Address created for property', ['property_id' => $property->id]);
 
             // NEW: Create price if provided
             if (isset($data['price'])) {
                 $priceData = $data['price'];
-                // Set penalize_search for non-numeric or hidden prices
                 $priceData['penalize_search'] = ($priceData['penalize_search'] ?? false) ||
                     (empty($priceData['amount']) && $priceData['price_type'] !== 'offers_between') ||
                     ($priceData['hide_amount'] ?? false) ||
@@ -255,8 +261,11 @@ class PropertyController extends Controller
             'price',
             'media',
         ]);
+        // Add category names for display
+        $categoryNames = $property->categories->pluck('name')->all();
         return Inertia::render('properties/properties-show', [
-            'property' => $property
+            'property' => $property,
+            'categoryNames' => $categoryNames,
         ]);
     }
 
@@ -312,20 +321,26 @@ class PropertyController extends Controller
                 'dynamic_attributes' => $data['dynamic_attributes'] ?? null,
             ]);
 
-            // Update address (use nested address fields)
+            // Update address (use LocationResolutionService for new/changed locations)
             if (isset($data['address']) && $property->address) {
+                $addressData = $data['address'];
+                $locationService = app(\App\Services\LocationResolutionService::class);
+                [$country, $state, $suburb] = $locationService->resolve($addressData);
                 $property->address->update([
-                    'suburb_id' => $data['address']['suburb_id'] ?? null,
-                    'street_number' => $data['address']['street_number'] ?? null,
-                    'street_name' => $data['address']['street_name'] ?? null,
-                    'unit_number' => $data['address']['unit_number'] ?? null,
-                    'lot_number' => $data['address']['lot_number'] ?? null,
-                    'site_name' => $data['address']['site_name'] ?? null,
-                    'region_name' => $data['address']['region_name'] ?? null,
-                    'lat' => $data['address']['lat'] ?? null,
-                    'long' => $data['address']['long'] ?? null,
-                    'display_address_on_map' => $data['address']['display_address_on_map'] ?? true,
-                    'display_street_view' => $data['address']['display_street_view'] ?? true,
+                    'suburb_id' => $suburb ? $suburb->id : null,
+                    'state_id' => $state ? $state->id : null,
+                    'country_id' => $country ? $country->id : null,
+                    'postcode' => $suburb ? $suburb->postcode : ($addressData['postcode'] ?? null),
+                    'street_number' => $addressData['street_number'] ?? null,
+                    'street_name' => $addressData['street_name'] ?? null,
+                    'unit_number' => $addressData['unit_number'] ?? null,
+                    'lot_number' => $addressData['lot_number'] ?? null,
+                    'site_name' => $addressData['site_name'] ?? null,
+                    'region_name' => $addressData['region_name'] ?? null,
+                    'lat' => $addressData['lat'] ?? null,
+                    'long' => $addressData['long'] ?? null,
+                    'display_address_on_map' => $addressData['display_address_on_map'] ?? true,
+                    'display_street_view' => $addressData['display_street_view'] ?? true,
                 ]);
             }
 

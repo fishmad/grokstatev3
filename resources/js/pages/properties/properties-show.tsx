@@ -58,6 +58,18 @@ export default function PropertiesShow({ property }: any) {
                 </div>
               </div>
               <div>
+                <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Suburb</div>
+                <div className="text-zinc-900 dark:text-zinc-100">
+                  {property.address?.suburb?.name || property.address?.suburb_name || property.address?.suburb || <span className="italic text-zinc-400">None</span>}
+                </div>
+              </div>
+              <div>
+                <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Postcode</div>
+                <div className="text-zinc-900 dark:text-zinc-100">
+                  {property.address?.suburb?.postcode || property.address?.postcode || <span className="italic text-zinc-400">None</span>}
+                </div>
+              </div>
+              <div>
                 <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Features</div>
                 <div className="text-zinc-900 dark:text-zinc-100">
                   {Array.isArray(property.features) && property.features.length > 0

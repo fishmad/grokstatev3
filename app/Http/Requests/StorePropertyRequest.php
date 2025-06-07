@@ -23,7 +23,7 @@ class StorePropertyRequest extends FormRequest
             'categories.*' => ['exists:categories,id'],
             'features' => ['required', 'array'],
             'features.*' => ['exists:features,id'],
-            // Address fields (nested)
+            // Address fields from the nested 'address' object
             'address.street_number' => 'nullable|string|max:50',
             'address.street_name' => 'required|string|max:255',
             'address.unit_number' => 'nullable|string|max:50',
@@ -32,15 +32,19 @@ class StorePropertyRequest extends FormRequest
             'address.region_name' => 'nullable|string|max:255',
             'address.lat' => 'nullable|numeric',
             'address.long' => 'nullable|numeric',
-            'address.latitude' => 'nullable|numeric',
-            'address.longitude' => 'nullable|numeric', // Use 'longitude' to avoid confusion with 'long'
             'address.display_address_on_map' => 'nullable|boolean',
             'address.display_street_view' => 'nullable|boolean',
-            // Location
-            'country_id' => 'required|exists:countries,id',
-            'state_id' => 'required|exists:states,id',
-            'suburb_id' => 'required|exists:suburbs,id',
-            'postcode' => 'required|string|max:20',
+            'address.country' => 'required|string|max:255', // Validate string country from address object
+            'address.state' => 'required|string|max:255',   // Validate string state from address object
+            'address.suburb' => 'required|string|max:255',  // Validate string suburb from address object
+            'address.postcode' => 'required|string|max:20', // Ensure postcode is preserved in nested address
+            // 'address.postcode' will be validated by the top-level 'postcode' rule after prepareForValidation
+            // Top-level location fields (IDs are nullable, postcode is required string)
+            // These are merged into the 'address' array by prepareForValidation
+            'country_id' => 'nullable|integer', // Allow null, controller will handle
+            'state_id' => 'nullable|integer',   // Allow null, controller will handle
+            'suburb_id' => 'nullable|integer',  // Allow null, controller will handle
+            'postcode' => 'required|string|max:20', // This is the top-level postcode from your log
             // Property details
             'beds' => 'nullable|numeric',
             'baths' => 'nullable|numeric',
@@ -84,10 +88,19 @@ class StorePropertyRequest extends FormRequest
         }
         // Move location fields into address if present
         $address = $this->input('address', []);
-        foreach (['suburb_id', 'state_id', 'country_id', 'postcode'] as $field) {
+        // Only merge state_id and country_id (suburb_id is always set by controller after location resolution)
+        foreach (['state_id', 'country_id'] as $field) {
             if ($this->has($field)) {
                 $address[$field] = $this->input($field);
             }
+        }
+        // Always set postcode from top-level if present, or keep existing if present in address
+        if ($this->has('postcode')) {
+            $address['postcode'] = $this->input('postcode');
+        } elseif (isset($address['postcode'])) {
+            // already present, do nothing
+        } else {
+            $address['postcode'] = null;
         }
         $this->merge(['address' => $address]);
     }

@@ -1,6 +1,6 @@
 APP_NAME=Laravel
 APP_ENV=local
-APP_KEY=base64:smv7opI9Bm+VLMFDeNAMPihqGonkJRu04rDDEfs3mH4=
+APP_KEY=base64:XFkNrGAOCYVP12/PGLi1CqTyPSApaAe40pxdIp9rSvg=
 APP_DEBUG=true
 APP_URL=http://127.0.0.1:8000
 
@@ -56,15 +56,44 @@ MAIL_PASSWORD=null
 MAIL_FROM_ADDRESS="hello@example.com"
 MAIL_FROM_NAME="${APP_NAME}"
 
+ADMIN_EMAIL="admin@example.com"
+
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 AWS_DEFAULT_REGION=us-east-1
 AWS_BUCKET=
 AWS_USE_PATH_STYLE_ENDPOINT=false
 
-VITE_APP_NAME="${APP_NAME}"
+SEO_URLS_ENABLED=true
+
+STRIPE_KEY=
+STRIPE_SECRET=pk_live_oLcQWzVy4RIeKWxtAtQWXcwV
+STRIPE_WEBHOOK_SECRET=sk_live_GSaJBNHlri8MzuACfskpXtJu
+
+PAYPAL_API_KEY=
+
+REA_GROUP_API_KEY=
+REA_CLIENT_ID=your-rea-client-id
+REA_CLIENT_SECRET=your-rea-client-secret
+REA_TOKEN_URL=https://auth.domain.com.au/v1/connect/token
+
+# Socialite (OAuth) configuration for Google and Facebook
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_REDIRECT_URI=http://localhost/auth/google/callback
+
+FACEBOOK_CLIENT_ID=your-facebook-client-id
+FACEBOOK_CLIENT_SECRET=your-facebook-client-secret
+FACEBOOK_REDIRECT_URI=http://localhost/auth/facebook/callback
+
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+GITHUB_REDIRECT_URI=http://localhost/auth/github/callback
+
 
 GOOGLE_MAPS_API_KEY=AIzaSyCuBishTQ8dUqiEw27vBOHsKg1sHRZTvGA
 GOOGLE_PLACES_API_KEY=${GOOGLE_MAPS_API_KEY}
 VITE_GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
 VITE_GOOGLE_MAP_ID=46b8a6cbf888582afc8dd3b8
+
+VITE_APP_NAME="${APP_NAME}"

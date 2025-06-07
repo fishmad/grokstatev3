@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import PropertyAddressStep from '@/components/property/form/PropertyAddressStep';
 import PropertyCategoryStep from '@/components/property/form/PropertyCategoryStep';
 import PropertyDetailsStep from '@/components/property/form/PropertyDetailsStep';
@@ -168,43 +169,52 @@ export default function PropertiesCreateWizard(props: any) {
     ...props,
   };
 
+  // Breadcrumbs using step labels
+  const breadcrumbs = [
+    { title: 'Dashboard', href: '/dashboard' },
+    { title: 'Properties', href: '/properties' },
+    { title: 'Create', href: '/properties/create' },
+    { title: steps[step].label, href: '#' },
+  ];
+
+  const addressStepIndex = steps.findIndex(s => s.component === PropertyAddressStep);
+
   return (
-    <AppLayout breadcrumbs={[]}> 
-      <Head title="Create Property (Wizard)" />
-      <div className="mb-6">
-        <div className="flex items-center gap-2">
-          {steps.map((s, i) => (
-            <div key={s.label} className={`px-3 py-1 rounded-full ${i === step ? 'bg-blue-600 text-white' : 'bg-zinc-200 text-zinc-700'}`}>
-              {s.label}
-            </div>
-          ))}
-        </div>
-      </div>
-      <CurrentStep {...stepProps} />
-      {/* Show pretty JSON payload on Submit step */}
-      {step === steps.findIndex(s => s.label === 'Submit') && (
-        <div className="my-6 p-4 bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-300 dark:border-zinc-700">
-          <div className="font-semibold mb-2 text-zinc-700 dark:text-zinc-200">Submission Payload Preview</div>
-          <pre className="text-xs whitespace-pre-wrap break-all text-zinc-800 dark:text-zinc-100" style={{ maxHeight: 400, overflow: 'auto' }}>
-            {JSON.stringify(formData, null, 2)}
-          </pre>
-        </div>
-      )}
-      <div className="flex justify-between mt-8">
-        <Button type="button" onClick={prevStep} disabled={step === 0}>Back</Button>
-        {step < steps.length - 1 ? (
-          <Button type="button" onClick={() => { if (validateCurrentStep()) nextStep(); }}>
-            Next
+    <AppLayout breadcrumbs={breadcrumbs}>
+      <Head title="Property Wizard" />
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Property Wizard</h1>
+          <Button asChild>
+            <a href="/properties" className="ml-auto">Back to List</a>
           </Button>
-        ) : (
-          <Button type="button" onClick={handleSubmit} disabled={processing}>Submit</Button>
-        )}
-      </div>
-      {successMessage && (
-        <div className="my-4 p-3 rounded bg-green-100 text-green-800 border border-green-300">
-          {successMessage}
         </div>
-      )}
+        <Tabs value={steps[step].label.toLowerCase().replace(/\s+/g, '-')} className="w-full">
+          <TabsList className="mb-6 flex gap-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1">
+            {steps.map((s, i) => (
+              <TabsTrigger
+                key={s.label}
+                value={s.label.toLowerCase().replace(/\s+/g, '-')}
+                onClick={() => setStep(i)}
+                className={step === i ? 'bg-white dark:bg-zinc-900 shadow' : ''}
+              >
+                {s.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {steps.map((s, i) => (
+            <TabsContent
+              key={s.label}
+              value={s.label.toLowerCase().replace(/\s+/g, '-')}
+              className={step === i ? 'block' : 'hidden'}
+            >
+              {s.component === PropertyAddressStep
+                ? React.createElement(s.component, { ...stepProps, active: step === addressStepIndex })
+                : React.createElement(s.component, stepProps)}
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
     </AppLayout>
   );
 }

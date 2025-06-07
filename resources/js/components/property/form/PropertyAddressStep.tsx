@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import GoogleAddressMapInput from './GoogleAddressMapInput';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
-export default function PropertyAddressStep({ data, setData, errors, nextStep, countries = [], states = [], suburbs = [] }: any) {
+export default function PropertyAddressStep({ data, setData, errors, nextStep, countries = [], states = [], suburbs = [], active }: any) {
   const [placeType, setPlaceType] = useState<string | null>(null);
+  const mapInputRef = useRef<any>(null);
 
   function handleAddressChange(addr: any) {
     // Start with the merged address
@@ -39,10 +40,19 @@ export default function PropertyAddressStep({ data, setData, errors, nextStep, c
     if (addr.place_type) setPlaceType(addr.place_type);
   }
 
+  useEffect(() => {
+    if (active && mapInputRef.current && mapInputRef.current.resizeMap) {
+      setTimeout(() => {
+        mapInputRef.current.resizeMap();
+      }, 100);
+    }
+  }, [active]);
+
   return (
     <div>
       <h2 className="text-lg font-bold mb-2">Address</h2>
       <GoogleAddressMapInput
+        ref={mapInputRef}
         value={data.address}
         onChange={handleAddressChange}
       />

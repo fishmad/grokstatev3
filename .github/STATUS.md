@@ -136,6 +136,8 @@
   - Optimize form state updates and minimize unnecessary re-renders.
   - Refactor address/location logic into a custom hook or smaller components for clarity.
 
+- TBA: In future, implement **Admin Approval for New Locations**. When a new country, state, or suburb is created (via LocationResolutionService), flag it for admin review before it becomes active/usable in listings. This will allow for curation and prevent unwanted/duplicate locations. (See also BUILD_ORDER.md)
+
 ---
 
 Refer to `.github/BUILD_ORDER.md` for the full roadmap and Copilot prompts.
