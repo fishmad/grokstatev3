@@ -63,14 +63,16 @@ export default function WizardStep4Location({ data, setData, errors, nextStep, c
         <Input type="text" placeholder="Street Name" value={data.address?.street_name || ''} onChange={e => setData('address', { ...data.address, street_name: e.target.value })} required />
         <Input type="text" placeholder="Unit Number (optional)" value={data.address?.unit_number || ''} onChange={e => setData('address', { ...data.address, unit_number: e.target.value })} />
         <Input type="text" placeholder="Lot Number (optional)" value={data.address?.lot_number || ''} onChange={e => setData('address', { ...data.address, lot_number: e.target.value })} />
+
+        <Input type="text" placeholder="Suburb" value={data.address?.suburb || ''} onChange={e => setData('address', { ...data.address, suburb: e.target.value })} required />
+        <Input type="text" placeholder="Postcode" value={data.address?.postcode || ''} onChange={e => setData('address', { ...data.address, postcode: e.target.value })} required />
+        <Input type="text" placeholder="State" value={data.address?.state || ''} onChange={e => setData('address', { ...data.address, state: e.target.value })} required />
+        <Input type="text" placeholder="Country" value={data.address?.country || ''} onChange={e => setData('address', { ...data.address, country: e.target.value })} required />
+
         <Input type="text" placeholder="Site Name (optional)" value={data.address?.site_name || ''} onChange={e => setData('address', { ...data.address, site_name: e.target.value })} />
         <Input type="text" placeholder="Region Name (optional)" value={data.address?.region_name || ''} onChange={e => setData('address', { ...data.address, region_name: e.target.value })} />
         <Input type="number" step="0.00000001" placeholder="Latitude (optional)" value={data.address?.lat || ''} onChange={e => setData('address', { ...data.address, lat: e.target.value })} />
         <Input type="number" step="0.00000001" placeholder="Longitude (optional)" value={data.address?.long || ''} onChange={e => setData('address', { ...data.address, long: e.target.value })} />
-        <Input type="text" placeholder="Country" value={data.address?.country || ''} onChange={e => setData('address', { ...data.address, country: e.target.value })} required />
-        <Input type="text" placeholder="State" value={data.address?.state || ''} onChange={e => setData('address', { ...data.address, state: e.target.value })} required />
-        <Input type="text" placeholder="Suburb" value={data.address?.suburb || ''} onChange={e => setData('address', { ...data.address, suburb: e.target.value })} required />
-        <Input type="text" placeholder="Postcode" value={data.address?.postcode || ''} onChange={e => setData('address', { ...data.address, postcode: e.target.value })} required />
       </div>
     </div>
   );

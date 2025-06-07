@@ -17,6 +17,16 @@ const defaultPriceForm = {
 
 export default function WizardStep2Listing({ data, setData, propertyTypes, listingMethods, listingStatuses, errors, nextStep, prevStep }: any) {
   const showPriceForm = !!data.price;
+
+  React.useEffect(() => {
+    if (listingStatuses?.length > 0 && !data.listing_status_id) {
+      setData('listing_status_id', String(listingStatuses[0].id));
+    }
+    if (propertyTypes?.length > 0 && !data.property_type_id) {
+      setData('property_type_id', String(propertyTypes[0].id));
+    }
+  }, [listingStatuses, propertyTypes]);
+
   return (
     <div>
       <h2 className="text-3xl font-bold pt-4 pb-6 text-gray-900 dark:text-gray-100">Advertisment Type</h2>

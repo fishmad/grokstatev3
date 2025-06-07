@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
 
 // Shoalhaven region default (Nowra, NSW):
-const defaultCenter = { lat: -34.8828, lng: 150.6000 }; // Shoalhaven, Nowra
+const defaultCenter = { lat: -34.397, lng: 150.644 }; // Shoalhaven, Nowra
 
 export interface GoogleAddressMapInputProps {
   value?: any;
@@ -49,7 +49,7 @@ const GoogleAddressMapInput = forwardRef(function GoogleAddressMapInput({ value,
     const google = window.google;
     const map = new google.maps.Map(mapRef.current, {
       center: marker,
-      zoom: 11, // Zoomed out for Shoalhaven region
+      zoom: 8, // Zoomed out for Shoalhaven region
       mapId: import.meta.env.VITE_GOOGLE_MAP_ID,
       disableDefaultUI: false,
     });
@@ -193,7 +193,8 @@ const GoogleAddressMapInput = forwardRef(function GoogleAddressMapInput({ value,
           onChange={e => setAddress(e.target.value)}
           autoComplete="off"
         />
-        <div className="flex gap-2 mb-2">
+
+        {/* <div className="flex gap-2 mb-2">
           <input
             type="text"
             className="w-1/3 border rounded px-2 py-2"
@@ -240,16 +241,33 @@ const GoogleAddressMapInput = forwardRef(function GoogleAddressMapInput({ value,
             value={country}
             readOnly
           />
-        </div>
+        </div> */}
+
       </div>
+
+
+
       <div
         ref={mapRef}
-        style={{ width: '100%', height: '300px', borderRadius: 8, border: '1px solid #ddd' }}
+        style={{ width: '100%', height: '400px', borderRadius: 8, border: '1px solid #ddd' }}
       />
-      <div className="text-xs text-zinc-500 mt-2">
+
+        {/* <input
+          id="gmp-place-autocomplete"
+          type="text"
+          className="w-full border rounded px-2 py-2 mb-2"
+          placeholder="Search for an address..."
+          value={address}
+          onChange={e => setAddress(e.target.value)}
+          autoComplete="off"
+        /> */}
+
+      {/* <div className="text-xs text-zinc-500 mt-2">
         Click on the map to set the pin if the address is not found.<br />
         <span className="text-amber-700">Debug: Map ID in use: <code>{import.meta.env.VITE_GOOGLE_MAP_ID}</code></span>
-      </div>
+      </div> */}
+
+
     </div>
   );
 });

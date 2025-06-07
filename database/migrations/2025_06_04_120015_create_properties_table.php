@@ -20,15 +20,15 @@ return new class extends Migration
             $table->foreignId('listing_status_id')->constrained()->onDelete('cascade');
             $table->string('title');
             $table->text('description')->nullable();
-            $table->integer('beds')->nullable();
-            $table->integer('baths')->nullable();
-            $table->integer('parking_spaces')->nullable();
+            $table->integer('beds')->nullable(); // Beds = 0,1,2,3,4,5+
+            $table->integer('baths')->nullable(); // Baths = 0,1,2,3,4,5+
+            $table->integer('parking_spaces')->nullable(); // Parking spaces = 0,1,2,3,4,5+
             $table->decimal('land_size', 12, 2)->nullable();
             $table->string('land_size_unit', 10)->nullable();
             $table->decimal('building_size', 12, 2)->nullable();
             $table->string('building_size_unit', 10)->nullable();
-            $table->integer('ensuites')->nullable();
-            $table->integer('garage_spaces')->nullable();
+            $table->integer('ensuites')->nullable(); // Attributes really
+            $table->integer('garage_spaces')->nullable(); // Attributes really
             $table->json('dynamic_attributes')->nullable();
             $table->boolean('is_free')->default(false);
             $table->dateTime('expires_at')->nullable();
