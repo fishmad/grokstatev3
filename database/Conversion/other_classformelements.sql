@@ -1,0 +1,193 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.2
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost:3306
+-- Generation Time: Jun 08, 2025 at 04:46 AM
+-- Server version: 10.6.21-MariaDB-cll-lve
+-- PHP Version: 8.3.20
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `sese2394_smho`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `other_classformelements`
+--
+
+CREATE TABLE `other_classformelements` (
+  `classformelements_id` int(11) NOT NULL,
+  `class_id` int(11) NOT NULL DEFAULT 0,
+  `listingsformelements_id` int(11) NOT NULL DEFAULT 0
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+--
+-- Dumping data for table `other_classformelements`
+--
+
+INSERT INTO `other_classformelements` (`classformelements_id`, `class_id`, `listingsformelements_id`) VALUES
+(1114, 11, 13),
+(917, 6, 6),
+(936, 4, 9),
+(708, 6, 11),
+(912, 4, 5),
+(935, 6, 9),
+(1246, 11, 21),
+(906, 4, 1),
+(771, 6, 2),
+(911, 6, 5),
+(943, 11, 12),
+(942, 4, 12),
+(941, 6, 12),
+(1245, 4, 21),
+(707, 2, 11),
+(940, 2, 12),
+(1078, 11, 15),
+(954, 4, 16),
+(960, 4, 17),
+(1244, 6, 21),
+(973, 11, 19),
+(977, 6, 20),
+(905, 6, 1),
+(770, 2, 2),
+(937, 11, 9),
+(916, 2, 6),
+(924, 4, 7),
+(931, 11, 8),
+(934, 2, 9),
+(953, 6, 16),
+(930, 4, 8),
+(923, 6, 7),
+(1113, 4, 13),
+(1077, 4, 15),
+(952, 2, 16),
+(959, 6, 17),
+(705, 3, 11),
+(972, 4, 19),
+(929, 6, 8),
+(925, 11, 7),
+(919, 11, 6),
+(910, 2, 5),
+(915, 3, 6),
+(918, 4, 6),
+(928, 2, 8),
+(933, 3, 9),
+(566, 2, 10),
+(704, 1, 11),
+(939, 3, 12),
+(1112, 6, 13),
+(913, 11, 5),
+(951, 3, 16),
+(958, 2, 17),
+(1021, 11, 18),
+(971, 6, 19),
+(976, 2, 20),
+(904, 2, 1),
+(768, 3, 2),
+(909, 3, 5),
+(907, 11, 1),
+(922, 2, 7),
+(927, 3, 8),
+(1076, 6, 15),
+(970, 2, 19),
+(767, 1, 2),
+(969, 3, 19),
+(1111, 2, 13),
+(1075, 2, 15),
+(950, 1, 16),
+(957, 3, 17),
+(1020, 4, 18),
+(968, 1, 19),
+(975, 3, 20),
+(921, 3, 7),
+(1019, 6, 18),
+(1110, 3, 13),
+(938, 1, 12),
+(956, 1, 17),
+(564, 1, 10),
+(903, 3, 1),
+(766, 4, 2),
+(1138, 11, 22),
+(1137, 4, 22),
+(1136, 6, 22),
+(1135, 2, 22),
+(1134, 3, 22),
+(1228, 11, 24),
+(974, 1, 20),
+(1109, 1, 13),
+(703, 4, 11),
+(920, 1, 7),
+(1018, 2, 18),
+(914, 1, 6),
+(1074, 3, 15),
+(1243, 2, 21),
+(932, 1, 9),
+(908, 1, 5),
+(902, 1, 1),
+(926, 1, 8),
+(1242, 3, 21),
+(1073, 1, 15),
+(955, 11, 16),
+(961, 11, 17),
+(1017, 3, 18),
+(1016, 1, 18),
+(978, 4, 20),
+(979, 11, 20),
+(1241, 1, 21),
+(1133, 1, 22),
+(1227, 4, 24),
+(1226, 6, 24),
+(1225, 2, 24),
+(1224, 3, 24),
+(1223, 1, 24),
+(1222, 11, 25),
+(1221, 4, 25),
+(1220, 6, 25),
+(1219, 2, 25),
+(1218, 3, 25),
+(1217, 1, 25),
+(1240, 11, 26),
+(1239, 4, 26),
+(1238, 6, 26),
+(1237, 2, 26),
+(1236, 3, 26),
+(1235, 1, 26);
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `other_classformelements`
+--
+ALTER TABLE `other_classformelements`
+  ADD PRIMARY KEY (`classformelements_id`),
+  ADD KEY `idx_classformelements_class_id` (`class_id`),
+  ADD KEY `idx_classformelements_listingsformelements_id` (`listingsformelements_id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `other_classformelements`
+--
+ALTER TABLE `other_classformelements`
+  MODIFY `classformelements_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1247;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

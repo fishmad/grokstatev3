@@ -1,4 +1,4 @@
-# Project Status (as of June 6, 2025)
+# Project Status (as of June 8, 2025)
 
 ## Completed Tasks (Micro-detailed)
 
@@ -114,29 +114,42 @@
   - Confirmed that the property creation workflow is robust, with validation, error handling, and flash messages working as intended.
   - The project is now in a stable state for further feature development, UI polish, and advanced business logic.
 
-## Issues Still Encountered / To Do Tomorrow
+## Property Wizard Progress & Status
 
-- **Final End-to-End Test:**
-  - Run a full property creation and edit cycle, including media upload, to confirm all edge cases are handled.
-  - Double-check that all address/location fields are saved and displayed correctly in all views.
+### Completed (as of 2025-06-08)
 
-- **Frontend Address/ID Sync:**
-  - Ensure that when a user selects or autofills an address, the correct suburb/state/country IDs are always resolved and set in form state.
-  - Add more robust error handling for failed location resolution or missing IDs.
+- [x] Added/confirmed `status` column in properties table and updated model
+- [x] Refactored wizard to use new step order and POST logic
+- [x] Implemented robust backend draft logic and ID return
+- [x] Integrated media upload step using property ID
+- [x] Added preview and publish steps
+- [x] Added progress bar, draft save, and error handling
+- [x] Updated documentation and marked steps complete
+- [x] Refactored category and listing method selection to use icon boxes (not dropdowns)
+- [x] Added and handled `display_names` (JSON array) and `slug` fields throughout backend and frontend
+- [x] Updated all seeders to use arrays for `display_names`, removed `json_encode`, ensured proper JSON storage
+- [x] Updated models and controllers to cast and expose `display_names` as arrays
+- [x] Updated frontend to use `display_names[0]` for display, with fallback to name
+- [x] Added useEffect to set default dropdown values as strings
+- [x] Removed "Add Price Information" checkbox; pricing form is always visible
+- [x] Moved pricing form outside of bordered division for improved UI
+- [x] Debugged and fixed issues with `display_names` being received as a string by correcting seeder/model usage and reseeding the database
+- [x] Beds, baths, and parking spaces now use dropdowns (0,1,2,3,4,5+) with unselect option
+- [x] All field labels are above their inputs for consistency
+- [x] Land size/unit and building size/unit are on one line, visually balanced
+- [x] Description box is larger (8 rows, min-height)
+- [x] Google Maps zoom level set to 8
+- [x] All React/Select errors for empty values resolved (using 'unset' for unselected)
 
-- **UI/UX Polish:**
-  - Add tooltips, inline validation, and help text for address/location fields.
-  - Improve mobile responsiveness and accessibility for the property creation form.
+### In Progress / Next
 
-- **Testing:**
-  - Add/expand automated feature tests for property creation, especially for address and price validation.
-  - Add E2E tests for the full property workflow.
+- [ ] Further UI/UX polish or admin controls as requested
+- [ ] Additional validation or edge case handling per user feedback
+- [ ] Final QA and documentation polish
 
-- **Performance & Refactoring:**
-  - Optimize form state updates and minimize unnecessary re-renders.
-  - Refactor address/location logic into a custom hook or smaller components for clarity.
+---
 
-- TBA: In future, implement **Admin Approval for New Locations**. When a new country, state, or suburb is created (via LocationResolutionService), flag it for admin review before it becomes active/usable in listings. This will allow for curation and prevent unwanted/duplicate locations. (See also BUILD_ORDER.md)
+_Last updated: 2025-06-08_
 
 ---
 

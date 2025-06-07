@@ -817,31 +817,34 @@ php artisan migrate
 
 ---
 
-## Key Learnings & Best Practices (as of June 6, 2025)
+## Key Learnings & Best Practices (as of June 8, 2025)
 
-- **Address & Location Handling:**
-  - When using Google Maps/Places API, always map address components (e.g., administrative_area_level_1/2/3) to your schema fields explicitly. Decide which field (e.g., state, region, municipality) should be mapped to which form/database field, and document this in both code and UI.
-  - Allow for partial/incomplete addresses in the frontend and backend. Accept listings with missing suburb/state/country IDs, and provide clear validation and user feedback. This enables capturing leads even if the user doesn't know the full address.
-  - In the frontend, always check for missing/null IDs before using them (e.g., for dropdowns or lookups) to avoid runtime errors. Use fallback logic to display names or placeholders if IDs are missing.
-  - In the backend, resolve text fields to IDs where possible, but allow nulls and provide admin tools for later correction. Do not block property creation if only partial address data is available (unless business rules require it).
-  - Recycle existing form fields (e.g., "Site Name") for Google address components like municipality or region, but document the mapping for future devs.
+- **Frontend/Backend Data Consistency:**
+  - Always keep frontend and backend field names, types, and data structures in sync—especially for nested objects (e.g., address, price, features). Use TypeScript interfaces and backend casts to ensure type safety and avoid bugs.
 
-- **Frontend/Backend Sync:**
-  - Keep frontend and backend field names and data structures in sync, especially for nested objects like address and price. Use mapping helpers and type-safe interfaces in React/TypeScript.
-  - When changing schema or validation rules, update both the backend FormRequest and the frontend form logic at the same time.
+- **Dropdowns and Selects:**
+  - When using dropdowns for fields like beds, baths, and parking, always provide a "None" or "Unset" option with a non-empty value (e.g., 'unset') to avoid React/Select errors. Ensure the onValueChange handler and value prop are compatible with this.
 
-- **UI/UX & Validation:**
-  - Provide clear help text, tooltips, and inline validation for complex fields (like address/location) to guide users and reduce errors.
-  - Consider allowing users to submit incomplete listings and follow up later for missing details, rather than blocking submission.
-  - Add robust error handling for async actions (e.g., dropdown fetches, address resolution) and display user-friendly messages.
+- **UI/UX Consistency:**
+  - Place all field labels above their inputs for clarity and consistency. Use flex layouts to keep related fields (e.g., land size/unit, building size/unit) on a single line for a modern, compact UI.
 
-- **Testing & Debugging:**
-  - Use log inspection and debug output to quickly trace and resolve backend issues, especially with nested or relational data.
-  - Add automated feature tests for property creation, focusing on address and price validation, and edge cases with missing or partial data.
+- **Default Values:**
+  - Set sensible default values for dropdowns (e.g., land size unit = 'sqm', building size unit = 'sqft') to streamline data entry and reduce user errors.
 
-- **Refactoring & Maintainability:**
-  - Refactor address/location logic into custom hooks or smaller components for clarity and maintainability as the project grows.
-  - Document any non-obvious mappings or business rules in STATUS.md and COPILOT_STANDING_ORDER.md for future devs/AI.
+- **Map Integration:**
+  - Set a reasonable default zoom level for Google Maps (e.g., 8 for region-level view) to improve usability. Always check and document which address components are mapped to which fields.
+
+- **Draft and Error Handling:**
+  - Implement robust draft saving and restoration, with clear user feedback and error handling. Use AlertDialogs for important actions (e.g., draft recovery/reset) instead of toasts for better accessibility and clarity.
+
+- **Seeders and Data Integrity:**
+  - When using JSON columns (e.g., display_names), always store as arrays and cast appropriately in models. Avoid using json_encode in seeders—let Laravel handle JSON casting.
+
+- **Component Reusability:**
+  - Refactor repeated UI patterns (e.g., icon box selectors, dropdowns) into reusable components for maintainability and consistency.
+
+- **Testing and Validation:**
+  - After major refactors, always reseed the database and test both backend and frontend to ensure data is being handled as expected (e.g., display_names as array, not string).
 
 ---
 
@@ -869,7 +872,12 @@ To maintain consistency and quality across the project, adhere to the following 
 
 ## 3. Address & Location Resolution (Backend)
 
-- Implement a **dedicated LocationResolutionService** (see app/Services/LocationResolutionService.php) to handle country, state, and suburb lookup/creation from address strings. This allows for easy adaptation if the address lookup API/service changes in the future.
-- Use this service in PropertyController@store to resolve or create location records and return their IDs for address creation.
-- All address/location validation and merging is handled in StorePropertyRequest (see rules and prepareForValidation).
-- TBA: In future, implement **Admin Approval for New Locations**. When a new country, state, or suburb is created, flag it for admin review before it becomes active/usable in listings. This will allow for curation and prevent unwanted/duplicate locations. (See also STATUS.md)
+- Implement a **dedicated LocationResolutionService** (see `app/Services/LocationResolutionService.php`) to handle country, state, and suburb lookup/creation from address strings. This allows for easy adaptation if the address lookup API/service changes in the future.
+  - See usage example in `PropertyController@store` and related service methods for integration details.
+  - For address component mapping, refer to code comments in `LocationResolutionService.php` and the documentation in `PROPERTY-WIZARD.md` (section: Address Mapping).
+- Use this service in `PropertyController@store` to resolve or create location records and return their IDs for address creation.
+- All address/location validation and merging is handled in `StorePropertyRequest` (see rules and `prepareForValidation`).
+- **Planned: Admin Approval Workflow for New Locations**
+  - When a new country, state, or suburb is created, flag it for admin review before it becomes active/usable in listings. This will allow for curation and prevent unwanted/duplicate locations.
+  - Implementation options: add a `pending_approval` or `is_active` flag to location tables, trigger admin notifications, and provide a review UI in the admin dashboard.
+  - See also `STATUS.md` for tracking and future updates on this workflow.
