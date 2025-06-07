@@ -9,6 +9,7 @@ use App\Models\PropertyType;
 use App\Models\ListingMethod;
 use App\Models\ListingStatus;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Str;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -78,7 +79,14 @@ class DatabaseSeeder extends Seeder
 
         // Ensure required records exist for foreign keys
         $propertyType = PropertyType::firstOrCreate(['name' => 'House']);
-        $listingMethod = ListingMethod::firstOrCreate(['name' => 'Sale']);
+        $listingMethod = ListingMethod::firstOrCreate(
+            ['name' => 'Sale'],
+            [
+                'slug' => Str::slug('Sale'),
+                'display_names' => ['For Sale', 'Sell', 'Selling'], // <-- REMOVE json_encode
+                'description' => 'Standard sale method',
+            ]
+        );
         $listingStatus = ListingStatus::firstOrCreate(['name' => 'Active']);
 
 

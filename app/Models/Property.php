@@ -100,12 +100,14 @@ class Property extends Model
         'slug',
         'user_id',
         'expires_at',
+        'status', // <-- Added for draft/publish workflow
     ];
 
     protected $casts = [
         'dynamic_attributes' => 'array',
         'is_free' => 'boolean',
         'expires_at' => 'datetime',
+        'status' => 'string', // <-- Added for draft/publish workflow
     ];
 
     protected static function boot()

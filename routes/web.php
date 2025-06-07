@@ -6,6 +6,7 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FeatureController;
 use App\Http\Controllers\UpgradeController;
+use App\Http\Controllers\MediaController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -46,6 +47,7 @@ Route::middleware('auth')->group(function () {
         'destroy' => 'features.destroy',
     ]);
     Route::post('/properties/{property}/upgrades', [UpgradeController::class, 'store'])->middleware('auth')->name('upgrades.store');
+    Route::post('/properties/{property}/media', [MediaController::class, 'store'])->middleware('auth')->name('media.store');
 
     // Special route for the property wizard form
     Route::get('properties/wizard/create', function () {
@@ -73,6 +75,9 @@ Route::middleware('auth')->group(function () {
             // Optionally, pass property data if needed
         ]);
     })->name('properties.media');
+
+    // Publish property endpoint for wizard
+    Route::put('/properties/{property}/publish', [PropertyController::class, 'publish'])->middleware('auth')->name('properties.publish');
 });
 
 require __DIR__.'/settings.php';

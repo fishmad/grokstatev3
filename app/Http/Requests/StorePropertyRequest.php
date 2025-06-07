@@ -21,7 +21,7 @@ class StorePropertyRequest extends FormRequest
             'listing_status_id' => 'nullable|exists:listing_statuses,id',
             'categories' => ['required', 'array'],
             'categories.*' => ['exists:categories,id'],
-            'features' => ['required', 'array'],
+            'features' => ['nullable', 'array'],
             'features.*' => ['exists:features,id'],
             // Address fields from the nested 'address' object
             'address.street_number' => 'nullable|string|max:50',
@@ -44,7 +44,7 @@ class StorePropertyRequest extends FormRequest
             'country_id' => 'nullable|integer', // Allow null, controller will handle
             'state_id' => 'nullable|integer',   // Allow null, controller will handle
             'suburb_id' => 'nullable|integer',  // Allow null, controller will handle
-            'postcode' => 'required|string|max:20', // This is the top-level postcode from your log
+            'postcode' => ['nullable', 'string', 'max:20'], // This is the top-level postcode from your log
             // Property details
             'beds' => 'nullable|numeric',
             'baths' => 'nullable|numeric',

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Head, router } from '@inertiajs/react';
 
-export default function PropertiesCreateMedia({ propertyId, nextStep, prevStep, media = [] }: { propertyId: number, nextStep: () => void, prevStep: () => void, media?: any[] }) {
+export default function WizardStep8MediaUpload({ propertyId, nextStep, prevStep, media = [] }: { propertyId: number, nextStep: () => void, prevStep: () => void, media?: any[] }) {
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,9 +35,10 @@ export default function PropertiesCreateMedia({ propertyId, nextStep, prevStep, 
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div>
       <Head title="Upload Property Media" />
-      <h1 className="text-2xl font-bold mb-6 text-center">Upload Media</h1>
+
+      <h2 className="text-3xl font-bold pt-4 pb-6 text-gray-900 dark:text-gray-100">Media Upload</h2>
       <form onSubmit={handleUpload} className="space-y-4">
         <input type="file" multiple onChange={handleFileChange} />
         <Button type="submit" disabled={uploading || files.length === 0}>Upload</Button>
@@ -54,10 +55,6 @@ export default function PropertiesCreateMedia({ propertyId, nextStep, prevStep, 
             </div>
           ))}
         </div>
-      </div>
-      <div className="flex justify-between mt-8">
-        <Button type="button" onClick={prevStep}>Back</Button>
-        <Button type="button" onClick={nextStep}>Next</Button>
       </div>
     </div>
   );

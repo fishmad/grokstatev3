@@ -1,5 +1,4 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -16,46 +15,16 @@ const defaultPriceForm = {
   tax: 'unknown',
 };
 
-export default function PropertyStructureStep({ data, setData, propertyTypes, listingMethods, listingStatuses, errors, nextStep, prevStep }: any) {
+export default function WizardStep3Price({ data, setData, propertyTypes, listingMethods, listingStatuses, errors, nextStep, prevStep }: any) {
   const showPriceForm = !!data.price;
   return (
     <div>
-      <h2 className="text-lg font-bold mb-2">Structure, Listing, Price</h2>
+      <h2 className="text-3xl font-bold pt-4 pb-6 text-gray-900 dark:text-gray-100">Pricing Method</h2>
+
       <div className="space-y-4">
-        <label className="block text-sm font-medium">Property Type</label>
-        <Select value={data.property_type_id || ''} onValueChange={val => setData('property_type_id', val)}>
-          <SelectTrigger className="w-full bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700">
-            <SelectValue placeholder="Select Type" />
-          </SelectTrigger>
-          <SelectContent className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700">
-            {propertyTypes && propertyTypes.map((t: any) => (
-              <SelectItem key={t.id} value={String(t.id)}>{t.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <label className="block text-sm font-medium">Listing Method</label>
-        <Select value={data.listing_method_id || ''} onValueChange={val => setData('listing_method_id', val)}>
-          <SelectTrigger className="w-full bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700">
-            <SelectValue placeholder="Select Method" />
-          </SelectTrigger>
-          <SelectContent className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700">
-            {listingMethods && listingMethods.map((m: any) => (
-              <SelectItem key={m.id} value={String(m.id)}>{m.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <label className="block text-sm font-medium">Listing Status</label>
-        <Select value={data.listing_status_id || ''} onValueChange={val => setData('listing_status_id', val)}>
-          <SelectTrigger className="w-full bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700">
-            <SelectValue placeholder="Select Status" />
-          </SelectTrigger>
-          <SelectContent className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700">
-            {listingStatuses && listingStatuses.map((s: any) => (
-              <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+
         <div className="space-y-2">
+
           <div className="flex items-center gap-2">
             <Checkbox
               checked={showPriceForm}
@@ -69,7 +38,9 @@ export default function PropertyStructureStep({ data, setData, propertyTypes, li
             />
             <span>Add Price Information</span>
           </div>
+
           {showPriceForm && data.price && (
+
             <div className="space-y-4 p-4 border rounded-md">
               <div className="space-y-2">
                 <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">Price Type</label>
@@ -184,12 +155,10 @@ export default function PropertyStructureStep({ data, setData, propertyTypes, li
                 </p>
               )}
             </div>
+            
           )}
+
         </div>
-      </div>
-      <div className="flex justify-between mt-6">
-        <Button type="button" onClick={prevStep}>Back</Button>
-        <Button type="button" onClick={nextStep}>Next</Button>
       </div>
     </div>
   );

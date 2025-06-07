@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import GoogleAddressMapInput from './GoogleAddressMapInput';
+import GoogleAddressMapInput from './google-address-map-input';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 
-export default function PropertyAddressStep({ data, setData, errors, nextStep, countries = [], states = [], suburbs = [], active }: any) {
+export default function WizardStep4Location({ data, setData, errors, nextStep, countries = [], states = [], suburbs = [], active }: any) {
   const [placeType, setPlaceType] = useState<string | null>(null);
   const mapInputRef = useRef<any>(null);
 
@@ -50,7 +49,7 @@ export default function PropertyAddressStep({ data, setData, errors, nextStep, c
 
   return (
     <div>
-      <h2 className="text-lg font-bold mb-2">Address</h2>
+      <h2 className="text-3xl font-bold pt-4 pb-6 text-gray-900 dark:text-gray-100">Address for Property</h2>
       <GoogleAddressMapInput
         ref={mapInputRef}
         value={data.address}
@@ -72,9 +71,6 @@ export default function PropertyAddressStep({ data, setData, errors, nextStep, c
         <Input type="text" placeholder="State" value={data.address?.state || ''} onChange={e => setData('address', { ...data.address, state: e.target.value })} required />
         <Input type="text" placeholder="Suburb" value={data.address?.suburb || ''} onChange={e => setData('address', { ...data.address, suburb: e.target.value })} required />
         <Input type="text" placeholder="Postcode" value={data.address?.postcode || ''} onChange={e => setData('address', { ...data.address, postcode: e.target.value })} required />
-      </div>
-      <div className="flex justify-end mt-6">
-        <Button type="button" onClick={nextStep}>Next</Button>
       </div>
     </div>
   );

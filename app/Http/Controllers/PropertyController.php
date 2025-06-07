@@ -122,7 +122,7 @@ class PropertyController extends Controller
     {
         return Inertia::render('properties/properties-create', [
             'propertyTypes' => PropertyType::all(),
-            'listingMethods' => ListingMethod::all(),
+            'listingMethods' => ListingMethod::select('id', 'name', 'slug', 'display_names', 'description')->get(),
             'listingStatuses' => ListingStatus::all(),
             // Eager load categories with children for hierarchy
             'categoryGroups' => \App\Models\CategoryType::with(['categories' => function($q) {
@@ -178,6 +178,7 @@ class PropertyController extends Controller
                 'slug' => \Str::slug($data['title']) . '-' . uniqid(),
                 'expires_at' => now()->addMonths(6),
                 'user_id' => Auth::id(),
+                'status' => 'draft', // Always start as draft
             ]);
 
             \Log::info('Property created', ['id' => $property->id]);
@@ -233,6 +234,9 @@ class PropertyController extends Controller
             }
 
             // Use Inertia-friendly redirect with flash message
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['id' => $property->id, 'status' => $property->status], 201);
+            }
             return redirect()->route('properties.show', $property->id)
                 ->with('success', 'Property created successfully!');
         } catch (\Throwable $e) {
@@ -274,12 +278,45 @@ class PropertyController extends Controller
      */
     public function edit(Property $property)
     {
-        // NEW: Load price relationship
         $property->load(['address', 'propertyType', 'listingMethod', 'listingStatus', 'categories', 'features', 'price', 'media']);
+        // Return JSON for AJAX/API requests, Inertia page otherwise
+        if (request()->wantsJson() || request()->ajax()) {
+            // Flatten address country/state/suburb for API consumers
+            $propertyArr = $property->toArray();
+            if (isset($propertyArr['address'])) {
+                $address = $propertyArr['address'];
+                $address['country'] = $address['country']['name'] ?? ($address['country']['id'] ?? $address['country'] ?? null);
+                $address['state'] = $address['state']['name'] ?? ($address['state']['id'] ?? $address['state'] ?? null);
+                $address['suburb'] = $address['suburb']['name'] ?? ($address['suburb']['id'] ?? $address['suburb'] ?? null);
+                $propertyArr['address'] = $address;
+            }
+            // Add top-level category for wizard restoration
+            if (!empty($propertyArr['categories'])) {
+                $categories = $propertyArr['categories'];
+                $mainCategoryId = null;
+                foreach ($categories as $cat) {
+                    if (empty($cat['parent_id'])) {
+                        $mainCategoryId = $cat['id'];
+                        break;
+                    }
+                }
+                // If no top-level, infer from first subcategory
+                if (!$mainCategoryId && isset($categories[0]['parent_id'])) {
+                    $mainCategoryId = $categories[0]['parent_id'];
+                }
+                $propertyArr['category'] = $mainCategoryId;
+                $propertyArr['categories'] = array_column($categories, 'id');
+            }
+            // Flatten features to array of IDs for wizard restoration
+            if (!empty($propertyArr['features'])) {
+                $propertyArr['features'] = array_column($propertyArr['features'], 'id');
+            }
+            return response()->json(['property' => $propertyArr]);
+        }
         return Inertia::render('properties/properties-edit', [
             'property' => $property,
             'propertyTypes' => PropertyType::all(),
-            'listingMethods' => ListingMethod::all(),
+            'listingMethods' => ListingMethod::select('id', 'name', 'slug', 'display_names', 'description')->get(),
             'listingStatuses' => ListingStatus::all(),
             // Eager load categories with children for hierarchy (match create)
             'categoryGroups' => \App\Models\CategoryType::with(['categories' => function($q) {
@@ -382,5 +419,20 @@ class PropertyController extends Controller
         $property->delete();
         return redirect()->route('properties.index')
             ->with('success', 'Property deleted successfully!');
+    }
+
+    /**
+     * Publish a property (set status to active, validate all required fields)
+     */
+    public function publish(Request $request, Property $property)
+    {
+        // Only allow owner to publish
+        if ($property->user_id !== Auth::id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        // Validate using UpdatePropertyRequest
+        $validated = app(\App\Http\Requests\UpdatePropertyRequest::class)->validate($request->all());
+        $property->update(array_merge($validated, ['status' => 'active']));
+        return response()->json(['id' => $property->id, 'status' => $property->status], 200);
     }
 }

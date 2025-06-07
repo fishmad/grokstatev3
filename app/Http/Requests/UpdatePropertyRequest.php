@@ -21,7 +21,7 @@ class UpdatePropertyRequest extends FormRequest
             'listing_status_id' => 'nullable|exists:listing_statuses,id',
             'categories' => ['required', 'array'],
             'categories.*' => ['exists:categories,id'],
-            'features' => ['required', 'array'],
+            'features' => ['nullable', 'array'],
             'features.*' => ['exists:features,id'],
             'street_number' => 'nullable|string|max:50',
             'street_name' => 'nullable|string|max:255',

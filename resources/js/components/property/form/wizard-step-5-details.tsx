@@ -1,13 +1,12 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
-export default function PropertyDetailsStep({ data, setData, errors, nextStep, prevStep }: any) {
+export default function WizardStep5Details({ data, setData, errors, nextStep, prevStep }: any) {
   return (
     <div>
-      <h2 className="text-lg font-bold mb-2">Property Details</h2>
+      <h2 className="text-3xl font-bold pt-4 pb-6 text-gray-900 dark:text-gray-100">Property Details</h2>
       <div className="space-y-4">
         <Input id="title" name="title" value={data.title || ''} onChange={e => setData('title', e.target.value)} placeholder="Title" required />
         <Textarea id="description" name="description" value={data.description || ''} onChange={e => setData('description', e.target.value)} placeholder="Description" rows={4} />
@@ -40,10 +39,6 @@ export default function PropertyDetailsStep({ data, setData, errors, nextStep, p
             </SelectContent>
           </Select>
         </div>
-      </div>
-      <div className="flex justify-between mt-6">
-        <Button type="button" onClick={prevStep}>Back</Button>
-        <Button type="button" onClick={nextStep}>Next</Button>
       </div>
     </div>
   );

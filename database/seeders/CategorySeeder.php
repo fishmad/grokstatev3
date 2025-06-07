@@ -59,17 +59,37 @@ class CategorySeeder extends Seeder
         $type = CategoryType::firstOrCreate(['name' => 'Property']);
 
         foreach ($types as $parentName => $children) {
-            // Create parent category
+            // Custom display_name for 'Land' and 'Business' parents if needed
+            $parentDisplayName = $parentName;
+            $parentDescription = null;
+            if (strtolower($parentName) === 'residential') {
+                $parentDisplayName = 'For Sale';
+                $parentDescription = 'Properties available for sale.';
+            } elseif (strtolower($parentName) === 'commercial') {
+                $parentDisplayName = 'For Rent';
+                $parentDescription = 'Properties available for rent.';
+            }
             $parentSlug = Str::slug($parentName);
             $parentCategory = Category::firstOrCreate([
                 'name' => $parentName,
+                'display_name' => $parentDisplayName,
                 'category_type_id' => $type->id,
                 'parent_id' => null,
                 'slug' => $parentSlug,
+                'description' => $parentDescription,
             ]);
 
             // Create children
             foreach ($children as $childName) {
+                $childDisplayName = $childName;
+                $childDescription = null;
+                if (strtolower($childName) === 'house') {
+                    $childDisplayName = 'House for Sale';
+                    $childDescription = 'Standalone residential property for sale.';
+                } elseif (strtolower($childName) === 'apartment') {
+                    $childDisplayName = 'Apartment for Rent';
+                    $childDescription = 'Apartment available for rent.';
+                }
                 $childSlug = Str::slug($childName);
                 $slug = $childSlug;
                 $i = 2;
@@ -79,9 +99,11 @@ class CategorySeeder extends Seeder
                 }
                 Category::firstOrCreate([
                     'name' => $childName,
+                    'display_name' => $childDisplayName,
                     'category_type_id' => $type->id,
                     'parent_id' => $parentCategory->id,
                     'slug' => $slug,
+                    'description' => $childDescription,
                 ]);
             }
         }

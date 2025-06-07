@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('property_types', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->default('House');
-            $table->text('description')->nullable();
-            $table->timestamps();
+        Schema::table('properties', function (Blueprint $table) {
+            $table->string('status')->default('draft')->after('slug');
         });
     }
 
@@ -24,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('property_types');
+        Schema::table('properties', function (Blueprint $table) {
+            $table->dropColumn('status');
+        });
     }
 };

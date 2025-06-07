@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('listing_statuses', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->default('Active');
+            $table->json('display_names')->nullable();
             $table->text('description')->nullable();
             $table->boolean('is_historical')->default(false);
             $table->timestamps();
