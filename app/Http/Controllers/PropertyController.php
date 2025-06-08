@@ -33,7 +33,7 @@ class PropertyController extends Controller
     public function index(Request $request)
     {
         // NEW: Add filters for search, type, location, and price
-        $filters = $request->only(['search', 'property_type_id', 'country_id', 'state_id', 'suburb_id', 'price_min', 'price_max']);
+        $filters = $request->only(['search', 'property_type_id', 'country_id', 'state_id', 'suburb_id', 'price_min', 'price_max', 'listing_method_id']);
         $sort = $request->query('sort', '');
 
         // Cast suburb_id to int if present
@@ -53,6 +53,9 @@ class PropertyController extends Controller
             })
             ->when($filters['property_type_id'] ?? null, function ($q) use ($filters) {
                 $q->where('property_type_id', $filters['property_type_id']);
+            })
+            ->when($filters['listing_method_id'] ?? null, function ($q) use ($filters) {
+                $q->where('listing_method_id', $filters['listing_method_id']);
             })
             // Location filtering: country > state > suburb (most specific wins)
             ->when($filters['suburb_id'] ?? null, function ($q) use ($filters) {
@@ -96,15 +99,20 @@ class PropertyController extends Controller
                 ) DESC,
                 (SELECT penalize_search FROM prices WHERE prices.property_id = properties.id) ASC
             '))
+            ->when($sort === 'name_asc', fn ($q) => $q->orderBy('title', 'asc'))
+            ->when($sort === 'name_desc', fn ($q) => $q->orderBy('title', 'desc'))
+            ->when($sort === 'created_at_asc', fn ($q) => $q->orderBy('created_at', 'asc'))
+            ->when($sort === 'created_at_desc', fn ($q) => $q->orderBy('created_at', 'desc'))
+            ->when($sort === 'updated_at_asc', fn ($q) => $q->orderBy('updated_at', 'asc'))
+            ->when($sort === 'updated_at_desc', fn ($q) => $q->orderBy('updated_at', 'desc'))
             // Default sorting
             ->orderByDesc('updated_at')
             ->orderByDesc('created_at');
 
         $properties = $query->paginate(10);
-        // Eager load nested relationships for address > suburb > state > country
         $properties->getCollection()->load(['address.suburb.state.country']);
-
-        // Return paginator directly (not ->items()) for correct pagination and data
+        // Add listing methods for filter dropdown
+        $listingMethods = \App\Models\ListingMethod::select('id', 'name')->get();
         return Inertia::render('properties/properties-index', [
             'properties' => $properties,
             'filters' => $filters,
@@ -112,6 +120,7 @@ class PropertyController extends Controller
             'states' => $filters['country_id'] ?? null ? State::where('country_id', $filters['country_id'])->get() : [],
             'suburbs' => $filters['state_id'] ?? null ? Suburb::where('state_id', $filters['state_id'])->get() : [],
             'propertyTypes' => PropertyType::all(),
+            'listingMethods' => $listingMethods, // <-- pass as top-level prop
         ]);
     }
 

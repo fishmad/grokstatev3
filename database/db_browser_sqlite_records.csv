@@ -1,5 +1,0 @@
-id,name,email,email_verified_at,password,remember_token,is_active,is_agent,agent_details,role,created_at,updated_at
-1,super-admin,super-admin@test.com,2025-06-05 00:53:46,$2y$12$jbLNFIN7uyo.a.E5vaPRoOs3dxPLi2V0B7bCebhPvM9X/6j19Q0Hm,,1,1,,super-admin,2025-06-05 00:53:46,2025-06-05 00:53:46
-2,admin,admin@test.com,2025-06-05 00:53:46,$2y$12$pKXBlLEJgmMWuxlT0AWyCOg0STa5cZPOWjaeXwqVWx9yh0biT8OPO,,1,1,,admin,2025-06-05 00:53:46,2025-06-05 00:53:46
-3,agent,agent@test.com,2025-06-05 00:53:46,$2y$12$b6KUKGJ/HlnoM1aQ5NcB.eWUUtlDAmw.FdWefCsn6W/XlMaCW8CyC,,1,1,,agent,2025-06-05 00:53:46,2025-06-05 00:53:46
-4,user,user@test.com,2025-06-05 00:53:47,$2y$12$Ffd7b7.QoYBMiI/d1rfCj.laki6Bk1EWQom30kTmZ2a2jmsrz.cSy,,1,0,,user,2025-06-05 00:53:47,2025-06-05 00:53:47

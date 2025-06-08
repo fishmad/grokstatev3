@@ -105,7 +105,7 @@ class DatabaseSeeder extends Seeder
 
         // Seed properties with price using factories
         Property::factory()
-            ->count(50)
+            ->count(3)
             ->state([
                 'user_id' => $superAdmin->id, // Assign all properties to super admin
                 'property_type_id' => $propertyType->id,

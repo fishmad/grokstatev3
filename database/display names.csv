@@ -1,7 +1,0 @@
-id,name,display_names,description,slug,created_at,updated_at
-1,Sale,"""[\""For Sale\"",\""Sell\"",\""Selling\""]""",Standard sale method,sale,2025-06-08 01:44:47,2025-06-08 01:44:47
-2,Rent,"""[\""For Rent\"",\""Rental\"",\""Lease\""]""",Standard rental method,rent,2025-06-08 01:44:48,2025-06-08 01:44:48
-3,Auction,"""[\""Auction\""]""",Auction method,auction,2025-06-08 01:44:48,2025-06-08 01:44:48
-4,Lease,"""[\""Lease\""]""",Leasing method,lease,2025-06-08 01:44:48,2025-06-08 01:44:48
-5,Tender,"""[\""Tender\""]""",Tender method,tender,2025-06-08 01:44:48,2025-06-08 01:44:48
-6,Expression of Interest,"""[\""EOI\"",\""Expression of Interest\""]""",Expression of Interest method,expression-of-interest,2025-06-08 01:44:48,2025-06-08 01:44:48

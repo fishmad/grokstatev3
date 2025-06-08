@@ -16,24 +16,34 @@ import {
 
 interface Props {
     properties: any; // Accept any paginator structure
-    filters: { search?: string; property_type_id?: string; country_id?: string; state_id?: string; suburb_id?: string; price_min?: number; price_max?: number };
+    filters: { search?: string; property_type_id?: string; country_id?: string; state_id?: string; suburb_id?: string; price_min?: number; price_max?: number; listing_method_id?: string };
     countries: any[];
     states: any[];
     suburbs: any[];
     propertyTypes: any[];
+    listingMethods: any[]; // <-- add this prop
 }
 
-export default function PropertiesIndex({ properties, filters, countries, states: initialStates, suburbs: initialSuburbs, propertyTypes }: Props) {
+export default function PropertiesIndex({ properties, filters, countries, states: initialStates, suburbs: initialSuburbs, propertyTypes, listingMethods }: Props) {
+    // Find Australia country ID
+    const australia = countries.find((c) => c.name === 'Australia');
+    // Default to Australia if not set in filters
+    const defaultCountryId = filters.country_id || (australia ? australia.id : '');
+    // Only show states for Australia by default
+    const australianStates = (initialStates || []).filter((s: any) => s.country_id === (australia ? australia.id : ''));
 
     const [search, setSearch] = useState(filters.search || '');
-    const [propertyTypeId, setPropertyTypeId] = useState(filters.property_type_id || '');
-    const [countryId, setCountryId] = useState(filters.country_id || '');
+    const [countryId, setCountryId] = useState(defaultCountryId);
     const [stateId, setStateId] = useState(filters.state_id || '');
     const [suburbId, setSuburbId] = useState(filters.suburb_id || '');
     const [priceMin, setPriceMin] = useState(filters.price_min || '');
     const [priceMax, setPriceMax] = useState(filters.price_max || '');
     const [sort, setSort] = useState('');
-    const [states, setStates] = useState<any[]>(initialStates || []);
+    const [listingMethodId, setListingMethodId] = useState(filters.listing_method_id || '');
+    // Add missing state for propertyTypeId
+    const [propertyTypeId, setPropertyTypeId] = useState(filters.property_type_id || '');
+    // Set initial states to Australian states if country is Australia, else initialStates
+    const [states, setStates] = useState<any[]>(defaultCountryId === (australia ? australia.id : '') ? australianStates : (initialStates || []));
     const [suburbs, setSuburbs] = useState<any[]>(initialSuburbs || []);
 
     const applyFilters = (newFilters: any) => {
@@ -90,14 +100,16 @@ export default function PropertiesIndex({ properties, filters, countries, states
         </div>
             <div className="container mx-auto p-4">
                 <h1 className="text-2xl font-bold mb-4">My Properties</h1>
-                <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="mb-4">
                     <input
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search properties..."
-                        className="border p-2 rounded"
+                        className="border p-2 rounded w-full"
                     />
+                </div>
+                <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
                     <select value={propertyTypeId} onChange={(e) => setPropertyTypeId(e.target.value)} className="border p-2 rounded">
                         <option value="">All Property Types</option>
                         {propertyTypes.map((type) => (
@@ -140,10 +152,22 @@ export default function PropertiesIndex({ properties, filters, countries, states
                         <option value="">Sort By</option>
                         <option value="price_asc">Price: Low to High</option>
                         <option value="price_desc">Price: High to Low</option>
+                        <option value="name_asc">Name: A-Z</option>
+                        <option value="name_desc">Name: Z-A</option>
+                        <option value="created_at_desc">Date Added: Newest</option>
+                        <option value="created_at_asc">Date Added: Oldest</option>
+                        <option value="updated_at_desc">Date Modified: Newest</option>
+                        <option value="updated_at_asc">Date Modified: Oldest</option>
+                    </select>
+                    <select value={listingMethodId} onChange={(e) => setListingMethodId(e.target.value)} className="border p-2 rounded">
+                        <option value="">All Listing Methods</option>
+                        {(listingMethods || []).map((method: any) => (
+                            <option key={method.id} value={method.id}>{method.name}</option>
+                        ))}
                     </select>
                 </div>
                 <button
-                    onClick={() => applyFilters({ search, property_type_id: propertyTypeId, country_id: countryId, state_id: stateId, suburb_id: suburbId, price_min: priceMin, price_max: priceMax })}
+                    onClick={() => applyFilters({ search, property_type_id: propertyTypeId, country_id: countryId, state_id: stateId, suburb_id: suburbId, price_min: priceMin, price_max: priceMax, listing_method_id: listingMethodId, sort })}
                     className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
                 >
                     Apply Filters
@@ -154,9 +178,37 @@ export default function PropertiesIndex({ properties, filters, countries, states
                     )}
                     {properties.data.map((property: any) => (
                         <div key={property.id} className="border p-4 rounded">
+                          <img
+    src={property.media && property.media.length > 0 && property.media[0].url
+      ? (property.media[0].url.startsWith('http') ? property.media[0].url : `/storage/${property.media[0].url}`)
+      : '/storage/media/_coming_soon.svg'}
+    alt={
+      property.media && property.media.length > 0 && property.media[0].alt
+        ? String(property.media[0].alt)
+        : (property.title || 'Property photo')
+    }
+    className="w-full h-48 object-cover rounded mb-2 border border-gray-200 bg-gray-100"
+    loading="lazy"
+    style={{ objectFit: 'cover', background: '#f3f4f6' }}
+/>
+{property.media && property.media.length > 0 && (
+  <div className="text-xs text-gray-500 mb-2">Photo url: <code>{property.media[0].url}</code></div>
+)}
+
                             <h2 className="text-xl font-semibold">{property.title}</h2>
-                            <p>{property.description}</p>
-                            <p className="font-bold">{property.price?.display_price || 'Price not available'}</p>
+                            <p style={{ whiteSpace: 'pre-line' }}>{property.description && property.description.length > 500
+                                ? `${property.description.slice(0, 500)}...more`
+                                : property.description}
+                            </p>
+                            <p className="font-bold">
+                              {property.price?.display_price
+                                ?? (property.price?.amount ? `$${Number(property.price.amount).toLocaleString()}` : 'Price not available')}
+                              {property.price?.price_type ? (
+                                <span className="ml-2 text-sm text-gray-500">
+                                  ({property.price.price_type.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())})
+                                </span>
+                              ) : null}
+                            </p>
                             <p>
                                 {property.address?.street_number} {property.address?.street_name},
                                 {property.address?.suburb?.name ? ` ${property.address.suburb.name},` : ''}
@@ -164,12 +216,20 @@ export default function PropertiesIndex({ properties, filters, countries, states
                                 {property.address?.suburb?.state?.country?.name ? ` ${property.address.suburb.state.country.name},` : ''}
                                 {property.address?.suburb?.postcode ? ` ${property.address.suburb.postcode}` : ''}
                             </p>
-                            <div className="grid grid-cols-2 gap-2 text-sm text-gray-700 mt-2">
-                                <div><strong>Beds:</strong> {property.beds ?? '-'}</div>
-                                <div><strong>Baths:</strong> {property.baths ?? '-'}</div>
-                                <div><strong>Parking:</strong> {property.parking_spaces ?? '-'}</div>
-                                <div><strong>Land Size:</strong> {property.land_size ? `${property.land_size} ${property.land_size_unit || ''}` : '-'}</div>
-                                <div><strong>Building Size:</strong> {property.building_size ? `${property.building_size} ${property.building_size_unit || ''}` : '-'}</div>
+                            {/* Only show if at least one value is present */}
+                            {(property.beds ?? property.baths ?? property.parking_spaces ?? property.land_size ?? property.building_size) ? (
+                              <div className="grid grid-cols-2 gap-2 text-sm text-gray-700 mt-2">
+                                {property.beds != null && property.beds !== '' && property.beds !== '-' ? <div><strong>Beds:</strong> {property.beds}</div> : null}
+                                {property.baths != null && property.baths !== '' && property.baths !== '-' ? <div><strong>Baths:</strong> {property.baths}</div> : null}
+                                {property.parking_spaces != null && property.parking_spaces !== '' && property.parking_spaces !== '-' ? <div><strong>Parking:</strong> {property.parking_spaces}</div> : null}
+                                {property.land_size ? <div><strong>Land Size:</strong> {`${property.land_size} ${property.land_size_unit || ''}`}</div> : null}
+                                {property.building_size ? <div><strong>Building Size:</strong> {`${property.building_size} ${property.building_size_unit || ''}`}</div> : null}
+                              </div>
+                            ) : null}
+                            <div className="text-sm text-gray-700 mt-2">
+                              <strong>Listing Status:</strong> {property.listing_status?.name || '-'}<br />
+                              <strong>Listing Method:</strong> {property.listing_method?.name || '-'}<br />
+                              <strong>Property Type:</strong> {property.property_type?.name || '-'}
                             </div>
                             <div className="text-sm text-gray-700 mt-2">
                               <strong>Categories:</strong> {Array.isArray(property.categories) && property.categories.length > 0
