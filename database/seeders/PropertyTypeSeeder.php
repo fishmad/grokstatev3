@@ -9,6 +9,8 @@ class PropertyTypeSeeder extends Seeder
 {
     public function run(): void
     {
+        echo "\n[PropertyTypeSeeder] Running PropertyTypeSeeder...\n";
+
         $types = [
             'House',
             'Apartment',
@@ -22,7 +24,10 @@ class PropertyTypeSeeder extends Seeder
             'Land',
         ];
         foreach ($types as $type) {
-            PropertyType::firstOrCreate(['name' => $type]);
+            PropertyType::firstOrCreate(
+                ['name' => $type],
+                ['slug' => \Str::slug($type)]
+            );
         }
     }
 }

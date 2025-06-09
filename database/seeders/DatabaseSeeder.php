@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        echo "\n[DatabaseSeeder] Running DatabaseSeeder...\n";
+
         // Ensure Spatie roles exist before assigning
         foreach (['super-admin', 'admin', 'agent'] as $role) {
             Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
@@ -87,12 +89,16 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Standard sale method',
             ]
         );
-        $listingStatus = ListingStatus::firstOrCreate(['name' => 'Active']);
+        $listingStatus = ListingStatus::firstOrCreate(
+            ['name' => 'Active'],
+            ['slug' => Str::slug('Active')]
+        );
 
 
 
         // Call other seeders in logical order
         $this->call([
+            CategoryTypeSeeder::class, // Ensure this runs before CategorySeeder
             FeatureSeeder::class,
             CategorySeeder::class,
             PropertyTypeSeeder::class,

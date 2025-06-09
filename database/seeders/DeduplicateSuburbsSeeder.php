@@ -13,6 +13,8 @@ class DeduplicateSuburbsSeeder extends Seeder
 {
     public function run(): void
     {
+        echo "\n[DeduplicateSuburbsSeeder] Running DeduplicateSuburbsSeeder...\n";
+
         // Find duplicates by name (case-insensitive), state_id, postcode
         $duplicates = Suburb::select('name', 'state_id', 'postcode', DB::raw('COUNT(*) as count'))
             ->groupBy(DB::raw('LOWER(name)'), 'state_id', 'postcode')

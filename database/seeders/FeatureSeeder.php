@@ -14,6 +14,8 @@ class FeatureSeeder extends Seeder
      */
     public function run(): void
     {
+        echo "\n[FeatureSeeder] Running FeatureSeeder...\n";
+
         // Define feature groups and their features
         $groups = [
             'Outdoor' => [

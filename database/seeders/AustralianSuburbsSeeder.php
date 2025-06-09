@@ -11,6 +11,8 @@ class AustralianSuburbsSeeder extends Seeder
 {
     public function run(): void
     {
+        echo "\n[AustralianSuburbsSeeder] Running AustralianSuburbsSeeder...\n";
+
         $australia = Country::where('name', 'Australia')->first();
         if (!$australia) return;
 
@@ -54,6 +56,7 @@ class AustralianSuburbsSeeder extends Seeder
                 ],
                 [
                     'postcode' => $suburb['postcode'],
+                    'slug' => \Illuminate\Support\Str::slug($suburb['name']),
                 ]
             );
         }

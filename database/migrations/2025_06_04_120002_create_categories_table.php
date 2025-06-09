@@ -16,8 +16,8 @@ return new class extends Migration
             $table->foreignId('parent_id')->nullable()->constrained('categories')->onDelete('set null');
             $table->foreignId('category_type_id')->constrained()->onDelete('cascade'); 
             $table->string('name')->default('sale');
-            $table->string('display_name');
             $table->string('slug')->unique();
+            $table->string('display_name');
             $table->text('description')->nullable();
             $table->timestamps();
         });

@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('listing_statuses', function (Blueprint $table) {
             $table->id();
             $table->string('name')->default('Active');
+            $table->string('slug')->unique();
             $table->json('display_names')->nullable();
             $table->text('description')->nullable();
-            $table->string('slug')->unique();
             $table->boolean('is_active')->default(true);
             $table->boolean('is_default')->default(false);
             $table->boolean('is_historical')->default(false);

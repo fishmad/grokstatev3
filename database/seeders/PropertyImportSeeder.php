@@ -17,6 +17,8 @@ class PropertyImportSeeder extends Seeder
 
     public function run()
     {
+        echo "\n[PropertyImportSeeder] Running PropertyImportSeeder...\n";
+
         // 1. Load all CSVs into arrays
         $listings = $this->csvToArray(database_path('Conversion/other_en_listingsdb.csv'));
         $users = $this->csvToArray(database_path('Conversion/other_en_userdb.csv'));
@@ -100,6 +102,7 @@ class PropertyImportSeeder extends Seeder
                 'id' => $attributes['property_type_id'] ?? 1,
             ], [
                 'name' => $attributes['property_type'] ?? 'Default Type',
+                'slug' => \Str::slug($attributes['property_type'] ?? 'Default Type'),
             ]);
             // Ensure listing_method exists
             $listingMethod = \App\Models\ListingMethod::firstOrCreate([
@@ -113,6 +116,7 @@ class PropertyImportSeeder extends Seeder
                 'id' => $attributes['listing_status_id'] ?? 1,
             ], [
                 'name' => $attributes['status'] ?? 'Default Status',
+                'slug' => \Str::slug($attributes['status'] ?? 'Default Status'),
             ]);
 
             // Map status to listing_status_id or listing_method_id
@@ -191,7 +195,8 @@ class PropertyImportSeeder extends Seeder
                     'POA','GST','DA','BASIX','WIR', 'ENS', 'STCA', // real estate/finance
                     'SQM','HA','AC','M2','KM','KM2','FT','FT2','SQFT', // units
                     'NBN','TV','AC','DC', // tech/utilities
-                    'LED','USB','HD','GPS' // general
+                    'LED','USB','HD','GPS', // general
+                    'WIR', 'ENS', 'STCA', // common real estate terms
                 ];
                 return in_array($m[1], $acronyms) ? $m[1] : ucfirst(strtolower($m[1]));
             }, $desc);
@@ -204,6 +209,13 @@ class PropertyImportSeeder extends Seeder
 
             // --- Sanitize and normalize property title ---
             $oldPropertyId = $row['listingsdb_id'] ?? null;
+            $propertyId = null;
+            // Try to get propertyid from details or row
+            if (isset($attributes['propertyid']) && trim($attributes['propertyid']) !== '') {
+                $propertyId = $attributes['propertyid'];
+            } elseif (isset($row['propertyid']) && trim($row['propertyid']) !== '') {
+                $propertyId = $row['propertyid'];
+            }
             $propertyTitle = $row['listingsdb_title'] ?? '';
             $propertyTitle = strip_tags($propertyTitle);
             $propertyTitle = html_entity_decode($propertyTitle, ENT_QUOTES | ENT_HTML5, 'UTF-8');
@@ -226,7 +238,11 @@ class PropertyImportSeeder extends Seeder
             $propertyTitle = preg_replace('/([!?])\1+/', '$1', $propertyTitle);
             // Remove leading/trailing punctuation
             $propertyTitle = trim($propertyTitle, "-–—:;,. ");
-            // Append old property ID if it exists
+            // Append propertyid if it exists
+            if ($propertyId) {
+                $propertyTitle = "{$propertyId} - {$propertyTitle}";
+            }
+            // Append old property ID if it exists (for traceability)
             if ($oldPropertyId) {
                 $propertyTitle = rtrim($propertyTitle) . " - #{$oldPropertyId}";
             }
@@ -422,10 +438,18 @@ class PropertyImportSeeder extends Seeder
                 if ($suburb) {
                     \Log::info("[PropertyImportSeeder] Found existing suburb '{$suburbName}' (ID: {$suburb->id}) for property ID {$property->id} with state_id {$stateId} and postcode {$postcode}");
                 } else {
+                    $baseSlug = \Illuminate\Support\Str::slug($suburbName);
+                    $slug = $baseSlug;
+                    $i = 2;
+                    while (\App\Models\Suburb::where('slug', $slug)->exists()) {
+                        $slug = $baseSlug . '-' . $i;
+                        $i++;
+                    }
                     $suburb = \App\Models\Suburb::create([
                         'name' => $suburbName,
                         'state_id' => $stateId,
-                        'postcode' => $postcode
+                        'postcode' => $postcode,
+                        'slug' => $slug,
                     ]);
                     \Log::info("[PropertyImportSeeder] Created new suburb '{$suburbName}' (ID: {$suburb->id}) for property ID {$property->id} with state_id {$stateId} and postcode {$postcode}");
                 }
@@ -440,15 +464,20 @@ class PropertyImportSeeder extends Seeder
 
             // Address fallback: use more possible keys
             $streetKeys = ['street_name', 'address', 'street', 'street_address'];
-            $streetName = null;
+            $streetNameRaw = null;
             foreach ($streetKeys as $key) {
                 if (!empty($attributes[$key])) {
-                    $streetName = $attributes[$key];
+                    $streetNameRaw = $attributes[$key];
                     break;
                 } elseif (!empty($row[$key])) {
-                    $streetName = $row[$key];
+                    $streetNameRaw = $row[$key];
                     break;
                 }
+            }
+            $lotNumber = $unitNumber = $streetNumber = $streetName = null;
+            if (!empty($streetNameRaw)) {
+                // Extract lot, unit, street number, and cleaned street name
+                [$lotNumber, $unitNumber, $streetNumber, $streetName] = $this->extractAddressParts($streetNameRaw);
             }
             if (!empty($streetName)) {
                 $addressData = [
@@ -456,10 +485,10 @@ class PropertyImportSeeder extends Seeder
                     'suburb_id' => $suburb ? $suburb->id : null,
                     'country_id' => 1, // Set to 1 (Australia) or update to match your country table if needed
                     'state_id' => $stateId,
-                    'street_number' => $attributes['street_number'] ?? $row['street_number'] ?? null,
+                    'street_number' => $streetNumber,
                     'street_name' => $streetName,
-                    'unit_number' => $attributes['unit_number'] ?? $row['unit_number'] ?? null,
-                    'lot_number' => $attributes['lot_number'] ?? $row['lot_number'] ?? null,
+                    'unit_number' => $unitNumber,
+                    'lot_number' => $lotNumber,
                     'site_name' => $attributes['site_name'] ?? $row['site_name'] ?? null,
                     'region_name' => $attributes['region_name'] ?? $row['region_name'] ?? null,
                     'lat' => $attributes['lat'] ?? $row['lat'] ?? null,
@@ -468,6 +497,7 @@ class PropertyImportSeeder extends Seeder
                     'display_address_on_map' => isset($attributes['display_address_on_map']) && $attributes['display_address_on_map'] !== '' ? $attributes['display_address_on_map'] : (isset($row['display_address_on_map']) && $row['display_address_on_map'] !== '' ? $row['display_address_on_map'] : 0),
                     'display_street_view' => isset($attributes['display_street_view']) && $attributes['display_street_view'] !== '' ? $attributes['display_street_view'] : (isset($row['display_street_view']) && $row['display_street_view'] !== '' ? $row['display_street_view'] : 0),
                 ];
+                
                 \App\Models\Address::updateOrCreate(
                     ['property_id' => $property->id],
                     $addressData
@@ -506,11 +536,18 @@ class PropertyImportSeeder extends Seeder
             $categoryIds = [];
             foreach ($classIds as $classId) {
                 if (isset($categoriesById[$classId])) {
+                    $baseSlug = \Str::slug($categoriesById[$classId]['class_name']);
+                    $slug = $baseSlug;
+                    $i = 2;
+                    while (\App\Models\Category::where('slug', $slug)->exists()) {
+                        $slug = $baseSlug . '-' . $i;
+                        $i++;
+                    }
                     $category = Category::firstOrCreate([
                         'name' => $categoriesById[$classId]['class_name'],
                         'category_type_id' => 1, // default or actual type id
                     ], [
-                        'slug' => \Str::slug($categoriesById[$classId]['class_name']),
+                        'slug' => $slug,
                         'display_name' => $categoriesById[$classId]['class_name'],
                     ]);
                     $categoryIds[] = $category->id;
@@ -598,5 +635,142 @@ class PropertyImportSeeder extends Seeder
             fclose($handle);
         }
         return $rows;
+    }
+
+    /**
+     * Extracts lot, unit/flat, and street number from a raw address string.
+     * Returns: [lot_number, unit_number, street_number, cleaned_street_name]
+     * Now includes advanced sanitization before extraction.
+     */
+    private function extractAddressParts($address) {
+        // --- SANITIZATION STEP ---
+        // 1. Trim leading/trailing whitespace
+        $address = trim($address);
+        // 2. Reduce all spacing to 1 space only
+        $address = preg_replace('/\s+/', ' ', $address);
+        // 3. Remove all spacing both sides of forward slashes
+        $address = preg_replace('/\s*\/\s*/', '/', $address);
+        // 4. Remove all parentheses
+        $address = str_replace(['(', ')'], '', $address);
+        // 5. Remove trailing periods
+        $address = rtrim($address, '.');
+        // 6. Make everything lower case, then Title-Case
+        $address = mb_convert_case(mb_strtolower($address, 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
+        // 7. Expand/rename street type abbreviations (dr, pl, drv, etc.)
+        $abbrevs = [
+            '/\bRd\b/i' => 'Road',
+            '/\bDrv\b/i' => 'Drive',
+            '/\bDr\b/i' => 'Drive',
+            '/\bPl\b/i' => 'Place',
+            '/\bSt\b/i' => 'Street',
+            '/\bAve\b/i' => 'Avenue',
+            '/\bCres\b/i' => 'Crescent',
+            '/\bBlvd\b/i' => 'Boulevard',
+            '/\bPde\b/i' => 'Parade',
+            '/\bHwy\b/i' => 'Highway',
+            '/\bTce\b/i' => 'Terrace',
+            '/\bCt\b/i' => 'Court',
+            '/\bGr\b/i' => 'Grove',
+            '/\bLne\b/i' => 'Lane',
+            '/\bLn\b/i' => 'Lane',
+            '/\bCl\b/i' => 'Close',
+            '/\bPkwy\b/i' => 'Parkway',
+            '/\bMews\b/i' => 'Mews',
+            '/\bWay\b/i' => 'Way',
+            '/\bCct\b/i' => 'Circuit',
+            '/\bBvd\b/i' => 'Boulevard',
+        ];
+        foreach ($abbrevs as $pattern => $replacement) {
+            $address = preg_replace($pattern, $replacement, $address);
+        }
+        // --- END SANITIZATION ---
+        $lot = $unit = $streetNum = null;
+        $street = $address;
+        // Lot extraction (e.g. "Lot 13, 10 Panorama Drive" or "Lot 225 (7) Bayliss Road")
+        if (preg_match('/Lot\s*(\d+[A-Za-z]?)(?:\s*\((\d+)\))?/i', $address, $m)) {
+            $lot = $m[1];
+            if (isset($m[2])) $streetNum = $m[2];
+            $street = preg_replace('/Lot\s*\d+[A-Za-z]?(?:\s*\(\d+\))?[,\s]*/i', '', $street);
+        }
+        // --- ADVANCED UNIT/STREET EXTRACTION ---
+        // Accept plural 'Units', 'Villa', and handle comma/space/slash variations
+        // 1. (Unit|Units|Shop|U|Flat|Villa) prefix with or without comma
+        if (preg_match('/^(Shop|U|Unit|Units|Flat|Villa)\s*(\d+[A-Za-z]?\/?\d*[A-ZaZ]?)[,\s\/]+(\d+[A-Za-z\-]*)\s+(.+)/i', $street, $m)) {
+            $unit = $m[2];
+            $streetNum = $m[3];
+            $street = $m[4];
+        } 
+        // 2. (Unit|Units|Shop|U|Flat|Villa) prefix, then unit (possibly with slash), then street name (no explicit street number)
+        elseif (preg_match('/^(Shop|U|Unit|Units|Flat|Villa)\s*(\d+[A-Za-z]?\/?\d*[A-ZaZ]?)[,\s]+(.+)/i', $street, $m)) {
+            $unit = $m[2];
+            $street = $m[3];
+        }
+        // 3. U12 52A Henry Street (no slash, unit prefix stuck to number)
+        elseif (preg_match('/^(Shop|U|Unit|Units|Flat|Villa)\s*(\d+[A-Za-z]?)[,\s]+([\dA-Za-z\-]+)\s+(.+)/i', $street, $m)) {
+            $unit = $m[2];
+            $streetNum = $m[3];
+            $street = $m[4];
+        }
+        // 4. 57B/2-8 Ridgevista Ct (unit with letter, street number range)
+        elseif (preg_match('/^(\d+[A-Za-z]?)\/(\d+[A-Za-z\-]*)\s+(.+)/', $street, $m)) {
+            $unit = $m[1];
+            $streetNum = $m[2];
+            $street = $m[3];
+        }
+        // 5. 3/36 Mitchell St (unit/streetNum, no prefix)
+        elseif (preg_match('/^(\d+[A-Za-z]?)\/(\d+[A-ZaZ\-]*)\s+(.+)/', $street, $m)) {
+            $unit = $m[1];
+            $streetNum = $m[2];
+            $street = $m[3];
+        }
+        // 6. 13-15 Norman Street (street number range, no unit)
+        elseif (preg_match('/^(\d+[A-Za-z]?-\d+[A-Za-z]?)\s+(.+)/', $street, $m)) {
+            $streetNum = $m[1];
+            $street = $m[2];
+        }
+        // 7. 28b 168-172 Willarong Rd (unit with letter, street number range)
+        elseif (preg_match('/^(\d+[A-Za-z])\s+(\d+-\d+)\s+(.+)/', $street, $m)) {
+            $unit = $m[1];
+            $streetNum = $m[2];
+            $street = $m[3];
+        }
+        // 8. 1-4/1 Black (unit range, street number)
+        elseif (preg_match('/^(\d+-\d+)\/(\d+[A-Za-z]?)\s+(.+)/', $street, $m)) {
+            $unit = $m[1];
+            $streetNum = $m[2];
+            $street = $m[3];
+        }
+        // 9. Standard: Unit/Flat/Villa prefix, then street
+        elseif (preg_match('/^(Unit|Flat|Villa)\s*(\w+)[,\s]+(.+)/i', $street, $m)) {
+            $unit = $m[2];
+            $street = $m[3];
+        }
+        // 10. Fallback: street number (with optional letter)
+        elseif (preg_match('/^(\d+[A-Za-z]?)/', trim($street), $m)) {
+            $streetNum = $m[1];
+            $street = trim(substr($street, strlen($m[1])));
+        }
+        // Clean up street name
+        $street = preg_replace('/^[,\s]+/', '', $street);
+        // Remove everything after the first comma
+        $street = preg_replace('/,.*/', '', $street);
+        // Remove everything after the first recognized street type (e.g. Road, Drive, Place, etc.)
+        $streetTypes = [
+            'Road', 'Drive', 'Place', 'Street', 'Avenue', 'Crescent', 'Boulevard', 'Parade', 'Highway', 'Terrace', 'Court', 'Grove', 'Lane', 'Close', 'Parkway', 'Mews', 'Way', 'Circuit', 'Boulevard'
+        ];
+        $streetTypePattern = implode('|', array_map(function($t) { return substr($t, 0, 2) . '\w*'; }, $streetTypes));
+        $street = preg_replace('/\b(' . $streetTypePattern . ')\b[^,]*.*/i', '$1', $street, 1);
+        $street = mb_convert_case($street, MB_CASE_TITLE, 'UTF-8');
+        foreach ($abbrevs as $pattern => $replacement) {
+            $street = preg_replace($pattern, $replacement, $street);
+        }
+        $street = preg_replace('/\s{2,}/', ' ', $street);
+        $street = trim($street, ",.;:- ");
+        return [
+            $lot,
+            $unit,
+            $streetNum,
+            $street
+        ];
     }
 }

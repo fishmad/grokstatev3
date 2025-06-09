@@ -4,11 +4,20 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\ListingStatus;
+use Illuminate\Support\Str;
 
 class ListingStatusSeeder extends Seeder
 {
     public function run(): void
     {
+        echo "\n[ListingStatusSeeder] Running ListingStatusSeeder...\n";
+
+        // Backfill missing slugs for existing records
+        foreach (ListingStatus::whereNull('slug')->orWhere('slug', '')->get() as $status) {
+            $status->slug = Str::slug($status->name);
+            $status->save();
+        }
+
         $statuses = [
             'Active',
             'Under Offer',
@@ -19,7 +28,10 @@ class ListingStatusSeeder extends Seeder
             'Historic',
         ];
         foreach ($statuses as $status) {
-            ListingStatus::firstOrCreate(['name' => $status]);
+            ListingStatus::updateOrCreate(
+                ['name' => $status],
+                ['slug' => Str::slug($status)]
+            );
         }
     }
 }

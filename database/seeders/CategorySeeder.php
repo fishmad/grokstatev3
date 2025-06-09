@@ -14,6 +14,17 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
+        // Log to terminal which seeder is running
+        echo "\n[CategorySeeder] Running CategorySeeder...\n";
+
+        // Ensure at least one category type with id=1 exists for foreign key integrity
+        \App\Models\CategoryType::firstOrCreate([
+            'id' => 1
+        ], [
+            'name' => 'Default',
+            'slug' => 'default',
+        ]);
+
         // Example category types and categories with hierarchy
         $types = [
             'Residential' => [

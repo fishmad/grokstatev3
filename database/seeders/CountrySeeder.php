@@ -12,6 +12,8 @@ class CountrySeeder extends Seeder
      */
     public function run(): void
     {
+        echo "\n[CountrySeeder] Running CountrySeeder...\n";
+
         \App\Models\Country::firstOrCreate(['name' => 'Australia'], ['iso_code' => 'AU']);
         //\App\Models\Country::firstOrCreate(['name' => 'United States'], ['iso_code' => 'US']);
     }

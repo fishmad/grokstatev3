@@ -10,6 +10,8 @@ class ListingMethodSeeder extends Seeder
 {
     public function run(): void
     {
+        echo "\n[ListingMethodSeeder] Running ListingMethodSeeder...\n";
+
         $methods = [
             [
                 'name' => 'Sale',
