@@ -16,6 +16,9 @@ return new class extends Migration
             $table->string('name')->default('Active');
             $table->json('display_names')->nullable();
             $table->text('description')->nullable();
+            $table->string('slug')->unique();
+            $table->boolean('is_active')->default(true);
+            $table->boolean('is_default')->default(false);
             $table->boolean('is_historical')->default(false);
             $table->timestamps();
         });

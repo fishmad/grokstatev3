@@ -14,6 +14,11 @@ return new class extends Migration
         Schema::create('listing_authorities', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->json('display_names')->nullable();
+            $table->text('description')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->boolean('is_default')->default(false);
+            $table->boolean('is_historical')->default(false);
             $table->timestamps();
         });
     }

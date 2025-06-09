@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('property_types', function (Blueprint $table) {
             $table->id();
             $table->string('name')->default('House');
+            $table->json('display_names')->nullable();
+            $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->timestamps();
         });
