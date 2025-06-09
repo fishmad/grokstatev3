@@ -16,15 +16,16 @@ import {
 
 interface Props {
     properties: any; // Accept any paginator structure
-    filters: { search?: string; property_type_id?: string; country_id?: string; state_id?: string; suburb_id?: string; price_min?: number; price_max?: number; listing_method_id?: string };
+    filters: { search?: string; property_type_id?: string; country_id?: string; state_id?: string; suburb_id?: string; price_min?: number; price_max?: number; listing_method_id?: string; listing_status_id?: string };
     countries: any[];
     states: any[];
     suburbs: any[];
     propertyTypes: any[];
     listingMethods: any[]; // <-- add this prop
+    listingStatuses: any[]; // <-- add this prop for listing status
 }
 
-export default function PropertiesIndex({ properties, filters, countries, states: initialStates, suburbs: initialSuburbs, propertyTypes, listingMethods }: Props) {
+export default function PropertiesIndex({ properties, filters, countries, states: initialStates, suburbs: initialSuburbs, propertyTypes, listingMethods, listingStatuses }: Props) {
     // Find Australia country ID
     const australia = countries.find((c) => c.name === 'Australia');
     // Default to Australia if not set in filters
@@ -42,6 +43,7 @@ export default function PropertiesIndex({ properties, filters, countries, states
     const [listingMethodId, setListingMethodId] = useState(filters.listing_method_id || '');
     // Add missing state for propertyTypeId
     const [propertyTypeId, setPropertyTypeId] = useState(filters.property_type_id || '');
+    const [listingStatusId, setListingStatusId] = useState(filters.listing_status_id || '');
     // Set initial states to Australian states if country is Australia, else initialStates
     const [states, setStates] = useState<any[]>(defaultCountryId === (australia ? australia.id : '') ? australianStates : (initialStates || []));
     const [suburbs, setSuburbs] = useState<any[]>(initialSuburbs || []);
@@ -165,9 +167,15 @@ export default function PropertiesIndex({ properties, filters, countries, states
                             <option key={method.id} value={method.id}>{method.name}</option>
                         ))}
                     </select>
+                    <select value={listingStatusId} onChange={(e) => setListingStatusId(e.target.value)} className="border p-2 rounded">
+                        <option value="">All Listing Statuses</option>
+                        {(listingStatuses || []).map((status: any) => (
+                            <option key={status.id} value={status.id}>{status.name}</option>
+                        ))}
+                    </select>
                 </div>
                 <button
-                    onClick={() => applyFilters({ search, property_type_id: propertyTypeId, country_id: countryId, state_id: stateId, suburb_id: suburbId, price_min: priceMin, price_max: priceMax, listing_method_id: listingMethodId, sort })}
+                    onClick={() => applyFilters({ search, property_type_id: propertyTypeId, country_id: countryId, state_id: stateId, suburb_id: suburbId, price_min: priceMin, price_max: priceMax, listing_method_id: listingMethodId, listing_status_id: listingStatusId, sort })}
                     className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
                 >
                     Apply Filters

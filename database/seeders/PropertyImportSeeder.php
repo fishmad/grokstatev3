@@ -202,21 +202,30 @@ class PropertyImportSeeder extends Seeder
             // Add double newlines between sentences
             $desc = preg_replace('/([.!?])\s+/', "$1\n\n", $desc);
 
-            // Prepend original CSV property ID to title
-            $propertyIdPrefix = isset($row['listingsdb_id']) ? $row['listingsdb_id'] . ' - ' : '';
-            $propertyTitle = $propertyIdPrefix . Str::title(strtolower($row['listingsdb_title']));
-
-            // Find the old property ID from details (listingsdbelements_field_name == 'propertyid')
-            $oldPropertyId = null;
-            foreach ($propertyDetails as $detail) {
-                if ($detail['listingsdbelements_field_name'] === 'propertyid' && !empty($detail['listingsdbelements_field_value'])) {
-                    $oldPropertyId = $detail['listingsdbelements_field_value'];
-                    break;
-                }
-            }
-            // Remove any prepended property ID from the title (e.g. "12345 - My Title")
+            // --- Sanitize and normalize property title ---
+            $oldPropertyId = $row['listingsdb_id'] ?? null;
             $propertyTitle = $row['listingsdb_title'] ?? '';
+            $propertyTitle = strip_tags($propertyTitle);
+            $propertyTitle = html_entity_decode($propertyTitle, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $propertyTitle = preg_replace('/\s+/', ' ', $propertyTitle); // Collapse whitespace
+            $propertyTitle = trim($propertyTitle);
+            // Remove any prepended property ID (e.g. "12345 - My Title")
             $propertyTitle = preg_replace('/^\d+\s*-\s*/', '', $propertyTitle);
+            // Title case, but preserve acronyms and common real estate terms
+            $propertyTitle = mb_convert_case($propertyTitle, MB_CASE_TITLE, 'UTF-8');
+            // Restore common acronyms and real estate terms to uppercase
+            $acronyms = ['CBD','NSW','ACT','VIC','QLD','WA','SA','NT','TAS','POA','GST','DA','BASIX','WIR','ENS','STCA','NBN','TV','AC','DC','LED','USB','HD','GPS'];
+            foreach ($acronyms as $acro) {
+                $propertyTitle = preg_replace('/\\b' . preg_quote(ucfirst(strtolower($acro)), '/') . '\\b/u', $acro, $propertyTitle);
+            }
+            // Capitalize after colon (e.g. "Unit: 5/10 Main St")
+            $propertyTitle = preg_replace_callback('/(:\s*)([a-z])/', function($m) {
+                return $m[1] . strtoupper($m[2]);
+            }, $propertyTitle);
+            // Remove excessive exclamation/question marks
+            $propertyTitle = preg_replace('/([!?])\1+/', '$1', $propertyTitle);
+            // Remove leading/trailing punctuation
+            $propertyTitle = trim($propertyTitle, "-–—:;,. ");
             // Append old property ID if it exists
             if ($oldPropertyId) {
                 $propertyTitle = rtrim($propertyTitle) . " - #{$oldPropertyId}";
@@ -321,31 +330,33 @@ class PropertyImportSeeder extends Seeder
                 $row
             ], ['garage_size', 'car_spaces', 'carspace', 'car_space', 'garage', 'parking', 'parking_spaces', 'carparks', 'carpark', 'car', 'cars']);
 
-            $property = Property::create([
-                'user_id' => $userId,
-                'title' => $propertyTitle,
-                'description' => $desc,
-                'created_at' => $row['listingsdb_creation_date'],
-                'updated_at' => $row['listingsdb_last_modified'],
-                'expires_at' => $row['listingsdb_expiration'],
-                'property_type_id' => $propertyType->id,
-                'listing_method_id' => $listingMethodId,
-                'listing_status_id' => $listingStatusId,
-                'beds' => $beds,
-                'baths' => $baths,
-                'parking_spaces' => $carSpaces,
-                'land_size' => $landSize,
-                'land_size_unit' => $landSizeUnit,
-                'building_size' => $buildingSize,
-                'building_size_unit' => $buildingSizeUnit,
-                'dynamic_attributes' => json_encode($attributes),
-                'slug' => $slug,
-            ]);
+            $property = Property::updateOrCreate(
+                ['slug' => $slug], // Unique key for upsert
+                [
+                    'user_id' => $userId,
+                    'title' => $propertyTitle,
+                    'description' => $desc,
+                    'created_at' => $row['listingsdb_creation_date'],
+                    'updated_at' => $row['listingsdb_last_modified'],
+                    'expires_at' => $row['listingsdb_expiration'],
+                    'property_type_id' => $propertyType->id,
+                    'listing_method_id' => $listingMethodId,
+                    'listing_status_id' => $listingStatusId,
+                    'beds' => $beds,
+                    'baths' => $baths,
+                    'parking_spaces' => $carSpaces,
+                    'land_size' => $landSize,
+                    'land_size_unit' => $landSizeUnit,
+                    'building_size' => $buildingSize,
+                    'building_size_unit' => $buildingSizeUnit,
+                    'dynamic_attributes' => json_encode($attributes),
+                ]
+            );
             if (!$property) {
-                \Log::error("[PropertyImportSeeder] FAILED to create property for listingsdb_id={$row['listingsdb_id']}");
+                \Log::error("[PropertyImportSeeder] FAILED to create/update property for listingsdb_id={$row['listingsdb_id']}");
                 continue;
             } else {
-                \Log::info("[PropertyImportSeeder] Created property ID {$property->id} for listingsdb_id={$row['listingsdb_id']}");
+                \Log::info("[PropertyImportSeeder] Created/updated property ID {$property->id} for listingsdb_id={$row['listingsdb_id']}");
             }
 
             // --- Fallback logic for key fields with more possible keys ---

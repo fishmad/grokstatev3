@@ -33,7 +33,7 @@ class PropertyController extends Controller
     public function index(Request $request)
     {
         // NEW: Add filters for search, type, location, and price
-        $filters = $request->only(['search', 'property_type_id', 'country_id', 'state_id', 'suburb_id', 'price_min', 'price_max', 'listing_method_id']);
+        $filters = $request->only(['search', 'property_type_id', 'country_id', 'state_id', 'suburb_id', 'price_min', 'price_max', 'listing_method_id', 'listing_status_id']);
         $sort = $request->query('sort', '');
 
         // Cast suburb_id to int if present
@@ -56,6 +56,9 @@ class PropertyController extends Controller
             })
             ->when($filters['listing_method_id'] ?? null, function ($q) use ($filters) {
                 $q->where('listing_method_id', $filters['listing_method_id']);
+            })
+            ->when($filters['listing_status_id'] ?? null, function ($q) use ($filters) {
+                $q->where('listing_status_id', $filters['listing_status_id']);
             })
             // Location filtering: country > state > suburb (most specific wins)
             ->when($filters['suburb_id'] ?? null, function ($q) use ($filters) {
@@ -120,7 +123,8 @@ class PropertyController extends Controller
             'states' => $filters['country_id'] ?? null ? State::where('country_id', $filters['country_id'])->get() : [],
             'suburbs' => $filters['state_id'] ?? null ? Suburb::where('state_id', $filters['state_id'])->get() : [],
             'propertyTypes' => PropertyType::all(),
-            'listingMethods' => $listingMethods, // <-- pass as top-level prop
+            'listingMethods' => ListingMethod::select('id', 'name')->get(),
+            'listingStatuses' => ListingStatus::select('id', 'name')->get(), // <-- add this line
         ]);
     }
 
