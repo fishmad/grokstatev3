@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link, Head } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import AppLayout from '@/layouts/welcome-layout';
 
 export default function PropertiesShow({ property }: any) {
   const breadcrumbs = [
@@ -14,7 +14,7 @@ export default function PropertiesShow({ property }: any) {
   const images = Array.isArray(property.media) && property.media.length > 0
     ? property.media.map((m: any) => m.url.startsWith('media/') ? `/storage/${m.url}` : m.url)
     : [];
-  const mainImage = images[0] || '/storage/media/placeholder-property.jpg';
+  const mainImage = images[0] || '/storage/media/_coming_soon.svg';
 
   // Compose address string
   const address = property.address ? [
@@ -57,7 +57,7 @@ export default function PropertiesShow({ property }: any) {
               src={mainImage}
               alt={property.title ? String(property.title) : 'Property'}
               className="object-cover w-full h-full"
-              onError={e => { (e.target as HTMLImageElement).src = '/placeholder-property.jpg'; }}
+              onError={e => { (e.target as HTMLImageElement).src = mainImage; }}
             />
             {images.length > 1 && (
               <div className="absolute bottom-2 right-2 flex gap-2">
@@ -67,7 +67,7 @@ export default function PropertiesShow({ property }: any) {
                     src={img}
                     alt={`Gallery ${idx + 1}`}
                     className="w-12 h-12 object-cover rounded border border-zinc-300 dark:border-zinc-700 shadow-sm bg-white/80 dark:bg-zinc-900/80"
-                    onError={e => { (e.target as HTMLImageElement).src = '/placeholder-property.jpg'; }}
+                    onError={e => { (e.target as HTMLImageElement).src = mainImage; }}
                   />
                 ))}
               </div>

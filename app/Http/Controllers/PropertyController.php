@@ -43,7 +43,7 @@ class PropertyController extends Controller
 
         $query = Property::query()
             ->with(['address', 'propertyType', 'listingMethod', 'listingStatus', 'categories', 'features', 'price', 'media'])
-            ->where('user_id', Auth::id())
+            //->where('user_id', Auth::id())
             // NEW: Apply search filters
             ->when($filters['search'] ?? null, function ($q) use ($filters) {
                 $q->where(function ($q2) use ($filters) {

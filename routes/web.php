@@ -18,12 +18,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 });
 
+
+
+
 Route::middleware('auth')->group(function () {
     Route::resource('properties', PropertyController::class)->names([
-        'index' => 'properties.index',
+        //'index' => 'properties.index',
         'create' => 'properties.create',
         'store' => 'properties.store',
-        'show' => 'properties.show',
+        //'show' => 'properties.show',
         'edit' => 'properties.edit',
         'update' => 'properties.update',
         'destroy' => 'properties.destroy',
@@ -79,6 +82,12 @@ Route::middleware('auth')->group(function () {
     // Publish property endpoint for wizard
     Route::put('/properties/{property}/publish', [PropertyController::class, 'publish'])->middleware('auth')->name('properties.publish');
 });
+
+// Remove the public resource for 'create' and 'store' (and optionally 'edit', 'update', 'destroy')
+Route::resource('properties', PropertyController::class)->only(['index', 'show'])->names([
+    'index' => 'properties.index',
+    'show' => 'properties.show',
+]);
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
