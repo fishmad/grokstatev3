@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getImageUrl } from '@/utils/getImageUrl';
 
 
 interface Props {
@@ -188,8 +189,8 @@ export default function PropertiesIndex({ properties, filters, countries, states
                         <div key={property.id} className="border p-4 rounded">
                           <img
     src={property.media && property.media.length > 0 && property.media[0].url
-      ? (property.media[0].url.startsWith('http') ? property.media[0].url : `/storage/${property.media[0].url}`)
-      : '/storage/media/_coming_soon.svg'}
+      ? getImageUrl(property.media[0].url)
+      : getImageUrl('_coming_soon.svg')}
     alt={
       property.media && property.media.length > 0 && property.media[0].alt
         ? String(property.media[0].alt)

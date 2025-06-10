@@ -509,23 +509,25 @@ class PropertyImportSeeder extends Seeder
 
             // Attach images (Media)
             $propertyImages = $imagesByListing[$row['listingsdb_id']] ?? collect();
+            \Log::debug("[PropertyImportSeeder] Images for property {$property->id} (listingdb_id={$row['listingsdb_id']}): " . json_encode($propertyImages->pluck('listingsimages_file_name')));
             if ($propertyImages->isEmpty()) {
                 \Log::info("[PropertyImportSeeder] No images found for property ID {$property->id}");
             }
             foreach ($propertyImages as $img) {
                 $imageName = $img['listingsimages_file_name'];
                 $sourceImagePath = storage_path('app/public/media/' . $imageName);
-                if (file_exists($sourceImagePath)) {
-                    $mediaUrl = 'media/' . $imageName;
-                    Media::create([
-                        'property_id' => $property->id,
-                        'type' => 'image',
-                        'url' => $mediaUrl,
-                    ]);
-                    \Log::info("[PropertyImportSeeder] Linked image '{$imageName}' to property ID {$property->id}");
-                } else {
-                    \Log::warning("[PropertyImportSeeder] Image file missing: {$imageName} for property ID {$property->id}");
-                }
+                // TEMP: Remove file_exists check for debugging
+                $mediaUrl = 'media/' . $imageName;
+                Media::create([
+                    'property_id' => $property->id,
+                    'type' => 'image',
+                    'url' => $mediaUrl,
+                ]);
+                \Log::info("[PropertyImportSeeder] Linked image '{$imageName}' to property ID {$property->id}");
+                // Uncomment below to restore file check after debugging
+                // if (!file_exists($sourceImagePath)) {
+                //     \Log::warning("[PropertyImportSeeder] Image file missing: {$imageName} for property ID {$property->id}");
+                // }
             }
 
             // Attach categories (property classes) using Laravel pivot table

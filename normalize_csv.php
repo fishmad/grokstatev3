@@ -118,6 +118,51 @@ function normalizeAddress($address, $streetTypes) {
     return $address === '' ? '' : $address;
 }
 
+// Grammar and spell check using LanguageTool API
+function grammarAndSpellCheck($text) {
+    if (trim($text) === '') return $text;
+    $url = 'https://api.languagetool.org/v2/check';
+    $data = [
+        'text' => $text,
+        'language' => 'en-AU'
+    ];
+    $options = [
+        'http' => [
+            'header'  => "Content-type: application/x-www-form-urlencoded",
+            'method'  => 'POST',
+            'content' => http_build_query($data),
+            'timeout' => 10
+        ]
+    ];
+    $context  = stream_context_create($options);
+    $result = @file_get_contents($url, false, $context);
+    if ($result === FALSE) {
+        return $text; // fallback to original
+    }
+    $resultData = json_decode($result, true);
+    if (!isset($resultData['matches'])) {
+        return $text;
+    }
+    // Apply corrections from the end of the string to the start
+    $corrections = [];
+    foreach ($resultData['matches'] as $match) {
+        if (isset($match['replacements'][0]['value'])) {
+            $corrections[] = [
+                'offset' => $match['offset'],
+                'length' => $match['length'],
+                'replacement' => $match['replacements'][0]['value']
+            ];
+        }
+    }
+    usort($corrections, function($a, $b) {
+        return $b['offset'] - $a['offset'];
+    });
+    foreach ($corrections as $corr) {
+        $text = substr_replace($text, $corr['replacement'], $corr['offset'], $corr['length']);
+    }
+    return $text;
+}
+
 // Process CSV
 $in = fopen($inputFile, 'r');
 $out = fopen($outputFile, 'w');
@@ -129,6 +174,9 @@ if (!is_array($header)) {
     exit(1);
 }
 fputcsv($out, $header);
+
+$maxGrammarChecks = PHP_INT_MAX; // Remove limit for production (process all records)
+$grammarChecks = 0;
 
 while (($row = fgetcsv($in)) !== false) {
     // Skip empty or malformed rows
@@ -152,14 +200,32 @@ while (($row = fgetcsv($in)) !== false) {
             $assoc['listingsdbelements_field_value'] = null;
         }
     }
-    // Strip HTML from home_features, community_features, description, contact, and full_desc
-    if (in_array($assoc['listingsdbelements_field_name'], ['home_features', 'community_features', 'description', 'contact', 'full_desc'])) {
+    // Only grammar/spellcheck for full_desc
+    if ($assoc['listingsdbelements_field_name'] === 'full_desc') {
         $val = $assoc['listingsdbelements_field_value'];
         // Replace <br> and <br /> with space
-        $val = preg_replace('/<br\s*\/?>/i', ' ', $val);
+        $val = preg_replace('/<br\s*\/?\>/i', ' ', $val);
         $val = strip_tags($val);
         $val = html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $val = trim(preg_replace('/\s+/', ' ', $val)); // Remove extra whitespace and line breaks
+        if ($val === '') {
+            $val = null;
+        } else {
+            // Log progress for monitoring
+            echo "Grammar checking record #".($grammarChecks+1)."\n";
+            $val = grammarAndSpellCheck($val);
+            $grammarChecks++;
+            // Sleep to avoid LanguageTool API rate limit (adjust as needed)
+            sleep(3);
+        }
+        $assoc['listingsdbelements_field_value'] = $val;
+    } else if (in_array($assoc['listingsdbelements_field_name'], ['home_features', 'community_features', 'description', 'contact'])) {
+        // Only clean/tidy, no grammar/spellcheck
+        $val = $assoc['listingsdbelements_field_value'];
+        $val = preg_replace('/<br\s*\/?\>/i', ' ', $val);
+        $val = strip_tags($val);
+        $val = html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $val = trim(preg_replace('/\s+/', ' ', $val));
         if ($val === '') {
             $val = null;
         }
@@ -167,11 +233,14 @@ while (($row = fgetcsv($in)) !== false) {
     }
     // Always wrap every value in double quotes for CSV output, escaping any existing quotes
     $quoted = array_map(function($v) {
+        // Ensure $v is always a string to avoid PHP 8.1+ deprecation warning
         if ($v === null) $v = '';
+        $v = (string)$v;
+        $v = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}\x{2028}\x{2029}\x{2060}\x{00A0}\x{180E}\x{2000}-\x{200A}\x{202F}\x{205F}\x{3000}]/u', '', $v);
         $v = str_replace('"', '""', $v); // Escape quotes
         return '"' . $v . '"';
     }, array_values($assoc));
-    fwrite($out, implode(',', $quoted) . "\r\n");
+    fwrite($out, implode(',', $quoted) . "\n"); // Use LF only
 }
 fclose($in);
 fclose($out);
