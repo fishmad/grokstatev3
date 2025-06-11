@@ -20,12 +20,12 @@ class PropertyImportSeeder extends Seeder
         echo "\n[PropertyImportSeeder] Running PropertyImportSeeder...\n";
 
         // 1. Load all CSVs into arrays
-        $listings = $this->csvToArray(database_path('Conversion/other_en_listingsdb.csv'));
-        $users = $this->csvToArray(database_path('Conversion/other_en_userdb.csv'));
-        $details = $this->csvToArray(database_path('Conversion/other_en_listingsdbelements.csv'));
-        $images = $this->csvToArray(database_path('Conversion/other_en_listingsimages.csv'));
-        $categories = $this->csvToArray(database_path('Conversion/other_en_class.csv'));
-        $classlistings = $this->csvToArray(database_path('Conversion/other_classlistingsdb.csv'));
+        $listings = $this->csvToArray(database_path('conversion/src/other_en_listingsdb.csv'));
+        $users = $this->csvToArray(database_path('conversion/src/other_en_userdb.csv'));
+        $details = $this->csvToArray(database_path('conversion/out/cleaned_listings.csv'));
+        $images = $this->csvToArray(database_path('conversion/src/other_en_listingsimages.csv'));
+        $categories = $this->csvToArray(database_path('conversion/src/other_en_class.csv'));
+        $classlistings = $this->csvToArray(database_path('conversion/src/other_classlistingsdb.csv'));
 
         // 2. Index users, details, images, categories, classlistings by their IDs for fast lookup
         $usersById = collect($users)->keyBy('userdb_id');
@@ -36,6 +36,11 @@ class PropertyImportSeeder extends Seeder
 
         // 3. Import properties
         foreach ($listings as $row) {
+            // Skip rows missing required keys
+            if (!isset($row['listingsdb_id']) || !isset($row['listingsdb_title'])) {
+                \Log::warning("[PropertyImportSeeder] Skipping row: missing listingsdb_id or listingsdb_title. Row data: " . json_encode($row));
+                continue;
+            }
             // --- LOGGING: Start of property import ---
             \Log::info("[PropertyImportSeeder] Importing property: listingsdb_id={$row['listingsdb_id']} title='{$row['listingsdb_title']}'");
 
@@ -87,12 +92,7 @@ class PropertyImportSeeder extends Seeder
                 $value = $detail['listingsdbelements_field_value'];
                 // Only skip if value is null or empty string
                 if (is_null($value) || $value === '') continue;
-                // Minimal HTML stripping for 'contact' field only
-                if (strtolower($key) === 'contact' && is_string($value)) {
-                    $value = strip_tags($value);
-                    $value = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                    $value = trim($value);
-                }
+                // No longer sanitize or normalize full_desc, suburb, home_features, community_features here
                 $attributes[$key] = $value;
             }
             // Now use $mappedFields for direct mapping to columns if needed
@@ -240,7 +240,7 @@ class PropertyImportSeeder extends Seeder
             $propertyTitle = trim($propertyTitle, "-–—:;,. ");
             // Append propertyid if it exists
             if ($propertyId) {
-                $propertyTitle = "{$propertyId} - {$propertyTitle}";
+                $propertyTitle = "{$propertyTitle} - #{$propertyId}";
             }
             // Append old property ID if it exists (for traceability)
             if ($oldPropertyId) {
@@ -310,14 +310,6 @@ class PropertyImportSeeder extends Seeder
                 [$buildingSize, $buildingSizeUnit] = $extractSize($rawSqMtr);
                 if ($buildingSize !== null) {
                     $buildingSize = (int) round(floatval($buildingSize)); // Use whole numbers only
-                }
-            }
-
-            // Normalize pipe-separated values in 'community_features' and 'home_features' to arrays before storing in dynamic_attributes
-            $featureFields = ['community_features', 'home_features'];
-            foreach ($featureFields as $featureKey) {
-                if (isset($attributes[$featureKey]) && is_string($attributes[$featureKey]) && strpos($attributes[$featureKey], '||') !== false) {
-                    $attributes[$featureKey] = array_map('trim', explode('||', $attributes[$featureKey]));
                 }
             }
 
@@ -438,7 +430,7 @@ class PropertyImportSeeder extends Seeder
                 if ($suburb) {
                     \Log::info("[PropertyImportSeeder] Found existing suburb '{$suburbName}' (ID: {$suburb->id}) for property ID {$property->id} with state_id {$stateId} and postcode {$postcode}");
                 } else {
-                    $baseSlug = \Illuminate\Support\Str::slug($suburbName);
+                    $baseSlug = \Illuminate\Support\Str::slug($suburbName) . '-' . $postcode;
                     $slug = $baseSlug;
                     $i = 2;
                     while (\App\Models\Suburb::where('slug', $slug)->exists()) {
@@ -478,6 +470,10 @@ class PropertyImportSeeder extends Seeder
             if (!empty($streetNameRaw)) {
                 // Extract lot, unit, street number, and cleaned street name
                 [$lotNumber, $unitNumber, $streetNumber, $streetName] = $this->extractAddressParts($streetNameRaw);
+                $lotNumber = null;
+                $unitNumber = null;
+                $streetNumber = null;
+                $streetName = $streetNameRaw; // Use raw value, assume pre-processed
             }
             if (!empty($streetName)) {
                 $addressData = [
@@ -688,12 +684,16 @@ class PropertyImportSeeder extends Seeder
         // --- END SANITIZATION ---
         $lot = $unit = $streetNum = null;
         $street = $address;
+
+
         // Lot extraction (e.g. "Lot 13, 10 Panorama Drive" or "Lot 225 (7) Bayliss Road")
         if (preg_match('/Lot\s*(\d+[A-Za-z]?)(?:\s*\((\d+)\))?/i', $address, $m)) {
             $lot = $m[1];
             if (isset($m[2])) $streetNum = $m[2];
             $street = preg_replace('/Lot\s*\d+[A-Za-z]?(?:\s*\(\d+\))?[,\s]*/i', '', $street);
         }
+
+        
         // --- ADVANCED UNIT/STREET EXTRACTION ---
         // Accept plural 'Units', 'Villa', and handle comma/space/slash variations
         // 1. (Unit|Units|Shop|U|Flat|Villa) prefix with or without comma
@@ -714,7 +714,7 @@ class PropertyImportSeeder extends Seeder
             $street = $m[4];
         }
         // 4. 57B/2-8 Ridgevista Ct (unit with letter, street number range)
-        elseif (preg_match('/^(\d+[A-Za-z]?)\/(\d+[A-Za-z\-]*)\s+(.+)/', $street, $m)) {
+        elseif (preg_match('/^(\d+[A-Za-z]?)\/(\d+[A-ZaZ\-]*)\s+(.+)/', $street, $m)) {
             $unit = $m[1];
             $streetNum = $m[2];
             $street = $m[3];
@@ -726,7 +726,7 @@ class PropertyImportSeeder extends Seeder
             $street = $m[3];
         }
         // 6. 13-15 Norman Street (street number range, no unit)
-        elseif (preg_match('/^(\d+[A-Za-z]?-\d+[A-Za-z]?)\s+(.+)/', $street, $m)) {
+        elseif (preg_match('/^(\d+[A-Za-z]?-\d+[A-ZaZ]?)\s+(.+)/', $street, $m)) {
             $streetNum = $m[1];
             $street = $m[2];
         }
@@ -774,5 +774,25 @@ class PropertyImportSeeder extends Seeder
             $streetNum,
             $street
         ];
+    }
+
+    // Helper: Clean and format user name
+    private function cleanUserName($name) {
+        // Lowercase, trim, collapse multiple spaces
+        $name = strtolower(trim($name));
+        $name = preg_replace('/\s+/', ' ', $name);
+        // Title-case, but keep common words lowercase unless first/last
+        $commonWords = ['and', 'or', 'the', 'of', 'in', 'on', 'at', 'for', 'to', 'with', 'a', 'an', 'by', 'from'];
+        $words = explode(' ', $name);
+        foreach ($words as $i => $word) {
+            if ($i === 0 || $i === count($words) - 1) {
+                $words[$i] = ucfirst($word);
+            } elseif (in_array($word, $commonWords)) {
+                $words[$i] = $word;
+            } else {
+                $words[$i] = ucfirst($word);
+            }
+        }
+        return implode(' ', $words);
     }
 }

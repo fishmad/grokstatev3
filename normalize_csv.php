@@ -1,8 +1,8 @@
 <?php
 
 // Config
-$inputFile = __DIR__ . '/database/Conversion/other_en_listingsdbelements_BUP.csv';
-$outputFile = __DIR__ . '/database/Conversion/other_en_listingsdbelements.csv';
+$inputFile = __DIR__ . '/database/conversion/in/other_en_listingsdbelements.csv';
+$outputFile = __DIR__ . '/database/conversion/out/cleaned_listings.csv';
 
 // Download Geonames AU towns list if not present
 $geonamesUrl = 'https://download.geonames.org/export/dump/AU.zip';
@@ -63,34 +63,44 @@ function properCase($str) {
     return ucwords(strtolower(trim($str)));
 }
 
-// Helper: Normalize town
-function normalizeTown($town, $townNames) {
-    $t = trim($town);
-    if ($t === '') return '';
-    $tLower = strtolower($t);
-    if (isset($townNames[$tLower])) {
-        return $townNames[$tLower];
-    }
-    // Try fuzzy match (ignore case, whitespace)
-    foreach ($townNames as $officialLower => $official) {
-        if (preg_replace('/\\s+/', '', $officialLower) === preg_replace('/\\s+/', '', $tLower)) {
-            return $official;
-        }
-    }
-    return properCase($t);
-}
-
-// Helper: Normalize suburb/town (remove parentheses, state, region info)
-function normalizeSuburb($suburb) {
+// Helper: Normalize suburb/town (remove parentheses, state, region info, punctuation, and only accept GeoNames matches)
+function normalizeSuburb($suburb, $townNames = null) {
     $t = trim($suburb);
     if ($t === '' || strtolower($t) === 'unknown') return '';
     // Remove anything in parentheses
     $t = preg_replace('/\s*\([^)]*\)/', '', $t);
     // Remove trailing state/region info (e.g., 'Nsw', 'Qld', etc.)
-    $t = preg_replace('/\b(NSW|Nsw|Qld|QLD|Vic|VIC|Tas|TAS|SA|WA|NT|ACT|Central Highlands|South Coast|North Shore|Gold Coast|Byron Bay|Wollongong Mall)\b.*/i', '', $t);
+    $t = preg_replace('/\b(NSW|Nsw|Qld|QLD|Vic|VIC|Tas|TAS|SA|WA|NT|ACT|Central Highlands|South Coast| - Tasmania|North Shore|Gold Coast|Byron Bay|Kurrajong |Wollongong|Wollongong Mall|Tasmania)\b.*/i', '', $t);
+    // Remove comma and everything after
+    $t = preg_replace('/,.*/', '', $t);
+    // Remove forward slash and everything after
+    $t = preg_replace('/\/.*$/', '', $t);
+    // Remove dash and everything after
+    $t = preg_replace('/-.*$/', '', $t);
+    // Remove all numbers
+    $t = preg_replace('/\d+/', '', $t);
+    // Remove apostrophes and periods
+    $t = str_replace(["'", "."], '', $t);
     // Remove extra whitespace and commas
     $t = trim(preg_replace('/[\s,]+$/', '', $t));
-    return properCase($t);
+    $t = preg_replace('/\s+/', ' ', $t);
+    $t = properCase($t);
+    // If $townNames provided, match against official list after normalization
+    if (is_array($townNames) && $t !== '') {
+        $tLower = strtolower($t);
+        if (isset($townNames[$tLower])) {
+            return $townNames[$tLower];
+        }
+        // Try fuzzy match (ignore case, whitespace)
+        foreach ($townNames as $officialLower => $official) {
+            if (preg_replace('/\s+/', '', $officialLower) === preg_replace('/\s+/', '', $tLower)) {
+                return $official;
+            }
+        }
+        // If not found in GeoNames, return blank
+        return '';
+    }
+    return $t;
 }
 
 // Helper: Normalize address (extract street only, null if unknown or just state/postcode)
@@ -118,49 +128,55 @@ function normalizeAddress($address, $streetTypes) {
     return $address === '' ? '' : $address;
 }
 
-// Grammar and spell check using LanguageTool API
-function grammarAndSpellCheck($text) {
-    if (trim($text) === '') return $text;
-    $url = 'https://api.languagetool.org/v2/check';
-    $data = [
-        'text' => $text,
-        'language' => 'en-AU'
-    ];
-    $options = [
-        'http' => [
-            'header'  => "Content-type: application/x-www-form-urlencoded",
-            'method'  => 'POST',
-            'content' => http_build_query($data),
-            'timeout' => 10
-        ]
-    ];
-    $context  = stream_context_create($options);
-    $result = @file_get_contents($url, false, $context);
-    if ($result === FALSE) {
-        return $text; // fallback to original
+// Helper: Clean Contact field (replace </p><p> and <br> with \n, sanitize, strip HTML)
+function cleanContactField($val) {
+    $val = str_replace('</p><p>', "\r\n", $val);
+    $val = preg_replace('/<br\s*\/?>/i', "\r\n", $val);
+    $val = str_replace('&nbsp;', " ", $val);
+    $val = strip_tags($val);
+    $val = html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $val = preg_replace('/[ \t]+/', ' ', $val); // collapse spaces/tabs
+    $val = preg_replace('/\s*\n\s*/', "\r\n", $val); // clean up newlines
+    $val = trim($val);
+    if ($val === '') {
+        $val = null;
     }
-    $resultData = json_decode($result, true);
-    if (!isset($resultData['matches'])) {
-        return $text;
+    return $val;
+}
+
+// Helper: Clean full_desc field (remove HTML, decode entities, trim whitespace)
+function cleanFullDescField($val) {
+    // Replace multiple consecutive <br> tags with a single line break
+    $val = preg_replace('/((<br\s*\/?>)\s*)+/i', "\r\n", $val);
+    // Replace multiple consecutive <p> tags with a double line break
+    $val = preg_replace('/((<p><\/p>)\s*)+/i', "\r\n", $val);
+    $val = str_replace('&nbsp;', " ", $val);
+    $val = strip_tags($val);
+    $val = preg_replace("/(\r\n){2}/", "\r\n", $val); // reduce multiple blank lines to no more than 2
+    $val = html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $val = preg_replace('/[ \t]+/', ' ', $val); // collapse spaces/tabs
+    // Remove whitespace before and after \r\n
+    $val = preg_replace('/[ \t]*\r\n[ \t]*/', "\r\n", $val);
+    $val = trim($val);
+    if ($val === '') {
+        $val = null;
     }
-    // Apply corrections from the end of the string to the start
-    $corrections = [];
-    foreach ($resultData['matches'] as $match) {
-        if (isset($match['replacements'][0]['value'])) {
-            $corrections[] = [
-                'offset' => $match['offset'],
-                'length' => $match['length'],
-                'replacement' => $match['replacements'][0]['value']
-            ];
-        }
+    return $val;
+}
+
+// Helper: Clean features field (replace double pipe with comma, strip HTML, decode entities, trim whitespace)
+function cleanFeaturesField($val) {
+    $val = str_replace('||', ',', $val);
+    $val = preg_replace('/<br\s*\/?>/i', ' ', $val);
+    $val = strip_tags($val);
+    $val = html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $val = preg_replace('/\s*,\s*/', ',', $val); // remove spaces around commas
+    $val = preg_replace('/[ \t]+/', ' ', $val); // collapse spaces/tabs
+    $val = trim($val, ', '); // remove leading/trailing commas and spaces
+    if ($val === '') {
+        $val = null;
     }
-    usort($corrections, function($a, $b) {
-        return $b['offset'] - $a['offset'];
-    });
-    foreach ($corrections as $corr) {
-        $text = substr_replace($text, $corr['replacement'], $corr['offset'], $corr['length']);
-    }
-    return $text;
+    return $val;
 }
 
 // Process CSV
@@ -187,10 +203,10 @@ while (($row = fgetcsv($in)) !== false) {
     if ($assoc === false) {
         continue;
     }
-    if ($assoc['listingsdbelements_field_name'] === 'town') {
-        // Normalize and trim town and address fields
+    if (in_array($assoc['listingsdbelements_field_name'], ['town', 'suburb'])) {
+        // Normalize and trim town/suburb fields using GeoNames
         $assoc['listingsdbelements_field_value'] = trim($assoc['listingsdbelements_field_value']);
-        $assoc['listingsdbelements_field_value'] = normalizeSuburb($assoc['listingsdbelements_field_value']);
+        $assoc['listingsdbelements_field_value'] = normalizeSuburb($assoc['listingsdbelements_field_value'], $townNames);
     }
     if ($assoc['listingsdbelements_field_name'] === 'address') {
         // Normalize and trim town and address fields
@@ -199,37 +215,50 @@ while (($row = fgetcsv($in)) !== false) {
         if ($assoc['listingsdbelements_field_value'] === '') {
             $assoc['listingsdbelements_field_value'] = null;
         }
+        // If address is null, try to extract from full_desc
+        if ($assoc['listingsdbelements_field_value'] === null && isset($assoc['listingsdb_id'])) {
+            // Find the corresponding full_desc for this listingsdb_id
+            $fullDesc = null;
+            // Rewind file pointer to start after header
+            $currentPos = ftell($in);
+            rewind($in);
+            fgetcsv($in); // skip header
+            while (($searchRow = fgetcsv($in)) !== false) {
+                $searchAssoc = array_combine($header, $searchRow);
+                if ($searchAssoc && $searchAssoc['listingsdb_id'] === $assoc['listingsdb_id'] && $searchAssoc['listingsdbelements_field_name'] === 'full_desc') {
+                    $fullDesc = $searchAssoc['listingsdbelements_field_value'];
+                    break;
+                }
+            }
+            fseek($in, $currentPos); // restore file pointer
+            if ($fullDesc) {
+                // Clean HTML and decode entities before address extraction
+                $fullDescText = html_entity_decode(strip_tags($fullDesc), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                // Improved regex: allow for address after any whitespace or punctuation, unit prefix optional
+                $pattern = '/(?:^|[\s,;:])((?:Unit|Flat|Villa|Shop)?\s*\d+[A-Za-z]?\/)?\d+[A-ZaZ]?(-\d+[A-Za-z]?)?\s+[A-Z][a-zA-Z\'\-]{2,}\s+(Street|St|Road|Rd|Avenue|Ave|Boulevard|Blvd|Court|Ct|Crescent|Cres|Drive|Dr|Lane|Ln|Place|Pl|Parade|Pde|Terrace|Ter|Way|Square|Sq|Trail|Trl|Circuit|Cct|Grove|Gr|Close|Cl|Mews|Bvd|Highway|Hwy)\b/';
+                if (preg_match($pattern, $fullDescText, $matches)) {
+                    // Remove any leading non-alphanumeric chars (e.g. space, comma, semicolon)
+                    $foundAddress = isset($matches[0]) ? ltrim($matches[0], " \t\n\r\0\x0B,;:") : '';
+                    $assoc['listingsdbelements_field_value'] = normalizeAddress($foundAddress, $streetTypes);
+                    // Debug output
+                    echo "[DEBUG] listingsdb_id={$assoc['listingsdb_id']} extracted address: '{$assoc['listingsdbelements_field_value']}'\n";
+                } else {
+                    // Debug output for no match
+                    echo "[DEBUG] listingsdb_id={$assoc['listingsdb_id']} no address found in full_desc\n";
+                }
+            }
+        }
     }
-    // Only grammar/spellcheck for full_desc
-    if ($assoc['listingsdbelements_field_name'] === 'full_desc') {
-        $val = $assoc['listingsdbelements_field_value'];
-        // Replace <br> and <br /> with space
-        $val = preg_replace('/<br\s*\/?\>/i', ' ', $val);
-        $val = strip_tags($val);
-        $val = html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $val = trim(preg_replace('/\s+/', ' ', $val)); // Remove extra whitespace and line breaks
-        if ($val === '') {
-            $val = null;
-        } else {
-            // Log progress for monitoring
-            echo "Grammar checking record #".($grammarChecks+1)."\n";
-            $val = grammarAndSpellCheck($val);
-            $grammarChecks++;
-            // Sleep to avoid LanguageTool API rate limit (adjust as needed)
-            sleep(3);
-        }
-        $assoc['listingsdbelements_field_value'] = $val;
-    } else if (in_array($assoc['listingsdbelements_field_name'], ['home_features', 'community_features', 'description', 'contact'])) {
+    // Special handling for Contact field: replace </p><p> and <br> with \n, then sanitize
+    if ($assoc['listingsdbelements_field_name'] === 'Contact') {
+        $assoc['listingsdbelements_field_value'] = cleanContactField($assoc['listingsdbelements_field_value']);
+    }
+    // Only clean/tidy for full_desc, no grammar/spellcheck
+    else if ($assoc['listingsdbelements_field_name'] === 'full_desc') {
+        $assoc['listingsdbelements_field_value'] = cleanFullDescField($assoc['listingsdbelements_field_value']);
+    } else if (in_array($assoc['listingsdbelements_field_name'], ['home_features', 'community_features'])) {
         // Only clean/tidy, no grammar/spellcheck
-        $val = $assoc['listingsdbelements_field_value'];
-        $val = preg_replace('/<br\s*\/?\>/i', ' ', $val);
-        $val = strip_tags($val);
-        $val = html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $val = trim(preg_replace('/\s+/', ' ', $val));
-        if ($val === '') {
-            $val = null;
-        }
-        $assoc['listingsdbelements_field_value'] = $val;
+        $assoc['listingsdbelements_field_value'] = cleanFeaturesField($assoc['listingsdbelements_field_value']);
     }
     // Always wrap every value in double quotes for CSV output, escaping any existing quotes
     $quoted = array_map(function($v) {
@@ -243,6 +272,39 @@ while (($row = fgetcsv($in)) !== false) {
     fwrite($out, implode(',', $quoted) . "\n"); // Use LF only
 }
 fclose($in);
+fclose($out);
+
+// After processing all rows, sort the output CSV by listingsdb_id, then listingsdbelements_field_name
+// Read the output file into an array
+$rows = [];
+if (($handle = fopen($outputFile, 'r')) !== false) {
+    $header = fgetcsv($handle);
+    while (($data = fgetcsv($handle)) !== false) {
+        $rowAssoc = array_combine($header, $data);
+        $rows[] = $rowAssoc;
+    }
+    fclose($handle);
+}
+// Sort by listingsdb_id, then listingsdbelements_field_name
+usort($rows, function($a, $b) {
+    $idCmp = strcmp($a['listingsdb_id'], $b['listingsdb_id']);
+    if ($idCmp !== 0) return $idCmp;
+    return strcmp($a['listingsdbelements_field_name'], $b['listingsdbelements_field_name']);
+});
+// Write sorted rows back to the output file
+$out = fopen($outputFile, 'w');
+fputcsv($out, $header);
+foreach ($rows as $row) {
+    // Always wrap every value in double quotes for CSV output, escaping any existing quotes
+    $quoted = array_map(function($v) {
+        if ($v === null) $v = '';
+        $v = (string)$v;
+        $v = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}\x{2028}\x{2029}\x{2060}\x{00A0}\x{180E}\x{2000}-\x{200A}\x{202F}\x{205F}\x{3000}]/u', '', $v);
+        $v = str_replace('"', '""', $v); // Escape quotes
+        return '"' . $v . '"';
+    }, array_values($row));
+    fwrite($out, implode(',', $quoted) . "\n");
+}
 fclose($out);
 
 echo "Done! Normalized CSV written to $outputFile\n";
