@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 class PropertyImportSeeder extends Seeder
 {
     // DEV FLAG: Set to true to assign all imported properties to user ID 1 and prevent new user creation
-    protected $assignAllToUser1 = true;
+    protected $assignAllToUser1 = false;
 
     public function run()
     {
