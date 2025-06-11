@@ -47,6 +47,7 @@ $streetTypes = [
     'pl' => 'Place',
     'pde' => 'Parade',
     'ter' => 'Terrace',
+    'tce' => 'Terrace', // Add Tce as Terrace
     'way' => 'Way',
     'sq' => 'Square',
     'trl' => 'Trail',
@@ -61,6 +62,19 @@ $streetTypes = [
 // Helper: Proper-case a string
 function properCase($str) {
     return ucwords(strtolower(trim($str)));
+}
+
+// Helper: Proper-case a string, including after hyphens
+function properCaseHyphenated($str) {
+    // Lowercase, then ucwords for spaces and hyphens
+    $str = strtolower(trim($str));
+    $str = ucwords($str, " -");
+    // Ensure letter after hyphen is uppercase (for cases like O'dwyer, Smith-Jones)
+    $str = preg_replace_callback('/\b([a-z])/', function($m) { return strtoupper($m[1]); }, $str); // first letter
+    $str = preg_replace_callback('/-([a-z])/', function($m) { return '-' . strtoupper($m[1]); }, $str);
+    // Also handle O'dwyer style (apostrophe)
+    $str = preg_replace_callback("/'([a-z])/", function($m) { return "'" . strtoupper($m[1]); }, $str);
+    return $str;
 }
 
 // Helper: Normalize suburb/town (remove parentheses, state, region info, punctuation, and only accept GeoNames matches)
@@ -84,7 +98,7 @@ function normalizeSuburb($suburb, $townNames = null) {
     // Remove extra whitespace and commas
     $t = trim(preg_replace('/[\s,]+$/', '', $t));
     $t = preg_replace('/\s+/', ' ', $t);
-    $t = properCase($t);
+    $t = properCaseHyphenated($t);
     // If $townNames provided, match against official list after normalization
     if (is_array($townNames) && $t !== '') {
         $tLower = strtolower($t);
@@ -123,18 +137,24 @@ function normalizeAddress($address, $streetTypes) {
     $address = preg_replace('/(\d)\s*-\s*(\d)/', '$1-$2', $address);
     // If after cleaning it's empty or just a number, return ''
     if (preg_match('/^\s*\d*\s*$/', $address)) return '';
-    // Remove everything after the first recognized street type (e.g. Road, Drive, Place, etc.)
+    // Always preserve the street type as the last word, and delete anything after it
     $streetTypesList = array_values($streetTypes);
     $streetTypePattern = implode('|', array_map(function($t) { return preg_quote($t, '/'); }, $streetTypesList));
-    // Match street type (abbreviation or full) and cut off everything after, then expand abbreviation if needed
-    $address = preg_replace_callback('/\b([a-z]{2,5}|'.$streetTypePattern.')\b.*/i', function($matches) use ($streetTypes) {
-        $abbr = strtolower($matches[1]);
-        return isset($streetTypes[$abbr]) ? $streetTypes[$abbr] : $matches[1];
-    }, $address, 1);
-    // Expand/normalize street type abbreviations at end (e.g. st -> Street, drv -> Drive, etc.)
-    $address = preg_replace_callback('/\b([a-zA-Z\']+)\b$/i', function($matches) {
-        return properCase($matches[1]);
-    }, $address);
+    $abbrPattern = implode('|', array_map('preg_quote', array_keys($streetTypes)));
+    // Match up to and including the last street type (abbreviation or full), delete anything after
+    $pattern = '/^(.+?\b(?:' . $streetTypePattern . '|' . $abbrPattern . ')\b)(?:\s+.*)?$/i';
+    if (preg_match($pattern, $address, $matches)) {
+        $address = $matches[1];
+        // Expand abbreviation at end if needed
+        $address = preg_replace_callback('/\b(' . $abbrPattern . ')\b$/i', function($m) use ($streetTypes) {
+            $abbr = strtolower($m[1]);
+            return isset($streetTypes[$abbr]) ? $streetTypes[$abbr] : $m[1];
+        }, $address);
+    }
+    // Proper-case the whole address, including after hyphens
+    $address = properCaseHyphenated($address);
+    // Collapse multiple spaces into one
+    $address = preg_replace('/\s+/', ' ', $address);
     $address = trim($address, ', ');
     return $address === '' ? '' : $address;
 }
