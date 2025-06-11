@@ -113,16 +113,27 @@ function normalizeAddress($address, $streetTypes) {
     $address = preg_replace('/\s+(NSW|Nsw|Qld|QLD|Vic|VIC|Tas|TAS|SA|WA|NT|ACT)$/i', '', $address);
     // Remove anything in parentheses
     $address = preg_replace('/\s*\([^)]*\)/', '', $address);
+    // Remove commas
+    $address = str_replace(',', '', $address);
+    // Remove 'Work Unit' (case-insensitive) and any whitespace before/after
+    $address = preg_replace('/\bWork\s*Unit\b/i', '', $address);
+    // Remove whitespace around forward slashes
+    $address = preg_replace('/\s*\/\s*/', '/', $address);
+    // Remove whitespace around dashes between numbers (e.g. 40 - 46 -> 40-46)
+    $address = preg_replace('/(\d)\s*-\s*(\d)/', '$1-$2', $address);
     // If after cleaning it's empty or just a number, return ''
     if (preg_match('/^\s*\d*\s*$/', $address)) return '';
-    // Proper-case
-    $address = preg_replace_callback('/\b([a-zA-Z\']+)\b/', function($matches) {
-        return properCase($matches[1]);
-    }, $address);
-    // Expand street types at end
-    $address = preg_replace_callback('/\b([A-Za-z]{2,5})\.?$/', function($matches) use ($streetTypes) {
+    // Remove everything after the first recognized street type (e.g. Road, Drive, Place, etc.)
+    $streetTypesList = array_values($streetTypes);
+    $streetTypePattern = implode('|', array_map(function($t) { return preg_quote($t, '/'); }, $streetTypesList));
+    // Match street type (abbreviation or full) and cut off everything after, then expand abbreviation if needed
+    $address = preg_replace_callback('/\b([a-z]{2,5}|'.$streetTypePattern.')\b.*/i', function($matches) use ($streetTypes) {
         $abbr = strtolower($matches[1]);
         return isset($streetTypes[$abbr]) ? $streetTypes[$abbr] : $matches[1];
+    }, $address, 1);
+    // Expand/normalize street type abbreviations at end (e.g. st -> Street, drv -> Drive, etc.)
+    $address = preg_replace_callback('/\b([a-zA-Z\']+)\b$/i', function($matches) {
+        return properCase($matches[1]);
     }, $address);
     $address = trim($address, ', ');
     return $address === '' ? '' : $address;
@@ -131,6 +142,7 @@ function normalizeAddress($address, $streetTypes) {
 // Helper: Clean Contact field (replace </p><p> and <br> with \n, sanitize, strip HTML)
 function cleanContactField($val) {
     $val = str_replace('</p><p>', "\r\n", $val);
+    $val = str_replace('</strong>', "  ", $val);
     $val = preg_replace('/<br\s*\/?>/i', "\r\n", $val);
     $val = str_replace('&nbsp;', " ", $val);
     $val = strip_tags($val);
