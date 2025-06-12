@@ -224,14 +224,13 @@ export default function PropertiesShow({ property }: any) {
                     <div><b>Street Name:</b> {property.address.street_name}</div>
                     <div><b>Unit Number:</b> {property.address.unit_number}</div>
                     <div><b>Lot Number:</b> {property.address.lot_number}</div>
-                    <div><b>Site Name:</b> {property.address.site_name}</div>
                     <div><b>Region Name:</b> {property.address.region_name}</div>
                     <div><b>Suburb:</b> {property.address.suburb?.name || property.address.suburb_name || property.address.suburb}</div>
                     <div><b>State:</b> {property.address.state?.name || property.address.state_name || property.address.state}</div>
                     <div><b>Country:</b> {property.address.country?.name || property.address.country_name || property.address.country}</div>
                     <div><b>Post Code:</b> {property.address.suburb?.postcode || property.address.postcode}</div>
-                    <div><b>Latitude:</b> {property.address.lat}</div>
-                    <div><b>Longitude:</b> {property.address.long}</div>
+                    <div><b>Latitude:</b> {property.address.latitude}</div>
+                    <div><b>Longitude:</b> {property.address.longitude}</div>
                     <div><b>Display on Map:</b> {property.address.display_address_on_map ? 'Yes' : 'No'}</div>
                     <div><b>Display Street View:</b> {property.address.display_street_view ? 'Yes' : 'No'}</div>
                   </>

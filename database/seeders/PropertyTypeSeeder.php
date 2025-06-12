@@ -9,8 +9,6 @@ class PropertyTypeSeeder extends Seeder
 {
     public function run(): void
     {
-        echo "\n[PropertyTypeSeeder] Running PropertyTypeSeeder...\n";
-
         $types = [
             'House',
             'Apartment',

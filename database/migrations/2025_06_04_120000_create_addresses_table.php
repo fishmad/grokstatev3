@@ -19,21 +19,33 @@ return new class extends Migration
             $table->foreign('country_id')->references('id')->on('countries')->onDelete('set null');
             $table->foreign('state_id')->references('id')->on('states')->onDelete('set null');
             $table->foreignId('suburb_id')->nullable()->constrained()->onDelete('set null');
-            $table->string('street_name');
+            $table->foreignId('region_id')->nullable()->constrained('regions')->onDelete('set null');
+            $table->string('address_line_1')->nullable(); // Unit or street address
+            $table->string('address_line_2')->nullable(); // Additional address information
+            $table->string('suburb')->nullable(); // Suburb
+            $table->string('city')->nullable(); // City
+            $table->string('state')->nullable(); // State
+            $table->string('country')->nullable(); // Country
+            $table->string('postcode')->nullable(); // Postal code
+            $table->string('region_name')->nullable(); // Region name (Council, Shire, etc.)
             $table->string('street_number')->nullable();
+            $table->string('street_name')->nullable(); 
+            $table->string('street_type')->nullable(); // Type of street (e.g., Street, Avenue, Road)
+            $table->string('is_unit')->nullable(); // Indicates if the address is a unit or apartment
             $table->string('unit_number')->nullable();
-            $table->string('formatted_address')->nullable();
-            $table->string('postcode')->nullable();
-            $table->string('region_name')->nullable();
-            //$table->string('slug')->nullable()->unique(); // Unique slug for the region
-            $table->string('site_name')->nullable();
+            $table->string('is_lot')->nullable(); // Indicates if the address is a lot
             $table->string('lot_number')->nullable();
-            $table->decimal('lat', 10, 8)->nullable();
-            $table->decimal('long', 11, 8)->nullable(); // 'long' is a reserved keyword in some databases, so we use 'longitude'
-            $table->decimal('latitude', 10, 8)->nullable(); // added to replace 'lat'
-            $table->decimal('longitude', 11, 8)->nullable(); // added to replace 'long'
+            $table->string('is_complex')->nullable(); // Indicates if the address is a complex (e.g., apartment complex, gated community)
+            $table->string('complex_number')->nullable(); // Complex number if applicable
+            $table->string('complex_street_name')->nullable(); // Complex street name if applicable
+            $table->string('complex_name')->nullable();
+            $table->string('formatted_address')->nullable();
+            $table->decimal('latitude', 10, 8)->nullable(); // added to replace 'latitude'
+            $table->decimal('longitude', 11, 8)->nullable(); // added to replace 'longitude'
             $table->boolean('display_address_on_map')->default(true);
             $table->boolean('display_street_view')->default(true);
+            $table->boolean('display_full_address')->default(true); // Display my entire address
+            $table->boolean('display_suburb_only')->default(false); // Display only my suburb
             $table->timestamps();
         });
     }

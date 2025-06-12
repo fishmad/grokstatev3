@@ -25,10 +25,9 @@ interface AddressForm {
   street_name?: string;
   unit_number?: string;
   lot_number?: string;
-  site_name?: string;
   region_name?: string;
-  lat?: string | number;
-  long?: string | number;
+  latitude?: string | number;
+  longitude?: string | number;
   display_address_on_map?: boolean;
   display_street_view?: boolean;
   suburb?: string;
@@ -104,10 +103,9 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
       street_name: '',
       unit_number: '',
       lot_number: '',
-      site_name: '',
       region_name: '',
-      lat: '',
-      long: '',
+      latitude: '',
+      longitude: '',
       display_address_on_map: true,
       display_street_view: true,
     },
@@ -282,8 +280,8 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
     postcode: address.postcode,
     state: address.state,
     country: address.country,
-    lat: address.lat !== undefined && address.lat !== '' ? Number(address.lat) : undefined,
-    lng: address.long !== undefined && address.long !== '' ? Number(address.long) : undefined,
+    latitude: address.latitude !== undefined && address.latitude !== '' ? Number(address.latitude) : undefined,
+    longitude: address.longitude !== undefined && address.longitude !== '' ? Number(address.longitude) : undefined,
   });
 
   // Helper to map AddressAutofill Address to AddressForm
@@ -294,8 +292,8 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
     postcode: address.postcode || '',
     state: address.state || '',
     country: address.country || '',
-    lat: address.lat !== undefined ? String(address.lat) : '',
-    long: address.lng !== undefined ? String(address.lng) : '',
+    latitude: address.latitude !== undefined ? String(address.latitude) : '',
+    longitude: address.longitude !== undefined ? String(address.longitude) : '',
   });
 
   // Add this handler near the top of the component
@@ -614,12 +612,6 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
                   />
                   <Input
                     type="text"
-                    placeholder="Site Name (optional)"
-                    value={data.address?.site_name || ''}
-                    onChange={e => setData('address', { ...data.address, site_name: e.target.value })}
-                  />
-                  <Input
-                    type="text"
                     placeholder="Region Name (optional)"
                     value={data.address?.region_name || ''}
                     onChange={e => setData('address', { ...data.address, region_name: e.target.value })}
@@ -628,15 +620,15 @@ export default function PropertiesCreate({ propertyTypes, listingMethods, listin
                     type="number"
                     step="0.00000001"
                     placeholder="Latitude (optional)"
-                    value={data.address?.lat || ''}
-                    onChange={e => setData('address', { ...data.address, lat: e.target.value })}
+                    value={data.address?.latitude || ''}
+                    onChange={e => setData('address', { ...data.address, latitude: e.target.value })}
                   />
                   <Input
                     type="number"
                     step="0.00000001"
                     placeholder="Longitude (optional)"
-                    value={data.address?.long || ''}
-                    onChange={e => setData('address', { ...data.address, long: e.target.value })}
+                    value={data.address?.longitude || ''}
+                    onChange={e => setData('address', { ...data.address, longitude: e.target.value })}
                   />
                 </div>
                 <div className="flex gap-4 mt-2">

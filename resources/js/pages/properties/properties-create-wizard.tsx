@@ -125,14 +125,14 @@ export default function PropertiesCreateWizard(props: any) {
             // Normalize address fields for Google Maps compatibility
             const normalized = { ...data.property };
             if (normalized.address) {
-              normalized.address.lat = normalized.address.lat !== undefined ? Number(normalized.address.lat) : null;
-              normalized.address.lng = normalized.address.lng !== undefined ? Number(normalized.address.lng) : null;
-              // Some APIs use 'long', some 'lng' -- ensure both are set
-              if (normalized.address.lng === null && normalized.address.long !== undefined) {
-                normalized.address.lng = Number(normalized.address.long);
+              normalized.address.latitude = normalized.address.latitude !== undefined ? Number(normalized.address.latitude) : null;
+              normalized.address.longitude = normalized.address.longitude !== undefined ? Number(normalized.address.longitude) : null;
+              // Some APIs use 'longitude', some 'lng' -- ensure both are set
+              if (normalized.address.longitude === null && normalized.address.longitude !== undefined) {
+                normalized.address.longitude = Number(normalized.address.longitude);
               }
-              if (normalized.address.lng !== undefined) {
-                normalized.address.long = normalized.address.lng;
+              if (normalized.address.latitude !== undefined) {
+                normalized.address.latitude = normalized.address.latitude;
               }
               normalized.address.formatted_address = normalized.address.formatted_address || '';
             }

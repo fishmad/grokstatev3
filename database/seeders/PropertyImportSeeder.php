@@ -17,8 +17,6 @@ class PropertyImportSeeder extends Seeder
 
     public function run()
     {
-        echo "\n[PropertyImportSeeder] Running PropertyImportSeeder...\n";
-
         // 1. Load all CSVs into arrays
         $listings = $this->csvToArray(database_path('conversion/src/other_en_listingsdb.csv'));
         $users = $this->csvToArray(database_path('conversion/src/other_en_userdb.csv'));
@@ -470,10 +468,7 @@ class PropertyImportSeeder extends Seeder
             if (!empty($streetNameRaw)) {
                 // Extract lot, unit, street number, and cleaned street name
                 [$lotNumber, $unitNumber, $streetNumber, $streetName] = $this->extractAddressParts($streetNameRaw);
-                $lotNumber = null;
-                $unitNumber = null;
-                $streetNumber = null;
-                $streetName = $streetNameRaw; // Use raw value, assume pre-processed
+                // Do NOT overwrite with nulls or raw value; use parsed values
             }
             if (!empty($streetName)) {
                 $addressData = [
@@ -485,10 +480,9 @@ class PropertyImportSeeder extends Seeder
                     'street_name' => $streetName,
                     'unit_number' => $unitNumber,
                     'lot_number' => $lotNumber,
-                    'site_name' => $attributes['site_name'] ?? $row['site_name'] ?? null,
                     'region_name' => $attributes['region_name'] ?? $row['region_name'] ?? null,
-                    'lat' => $attributes['lat'] ?? $row['lat'] ?? null,
-                    'long' => $attributes['long'] ?? $row['long'] ?? null,
+                    'latitude' => $attributes['latitude'] ?? $row['latitude'] ?? null,
+                    'longitude' => $attributes['longitude'] ?? $row['longitude'] ?? null,
                     'postcode' => $attributes['postcode'] ?? $row['postcode'] ?? null,
                     'display_address_on_map' => isset($attributes['display_address_on_map']) && $attributes['display_address_on_map'] !== '' ? $attributes['display_address_on_map'] : (isset($row['display_address_on_map']) && $row['display_address_on_map'] !== '' ? $row['display_address_on_map'] : 0),
                     'display_street_view' => isset($attributes['display_street_view']) && $attributes['display_street_view'] !== '' ? $attributes['display_street_view'] : (isset($row['display_street_view']) && $row['display_street_view'] !== '' ? $row['display_street_view'] : 0),
@@ -641,47 +635,8 @@ class PropertyImportSeeder extends Seeder
      * Now includes advanced sanitization before extraction.
      */
     private function extractAddressParts($address) {
-        // --- SANITIZATION STEP ---
-        // 1. Trim leading/trailing whitespace
-        $address = trim($address);
-        // 2. Reduce all spacing to 1 space only
-        $address = preg_replace('/\s+/', ' ', $address);
-        // 3. Remove all spacing both sides of forward slashes
-        $address = preg_replace('/\s*\/\s*/', '/', $address);
-        // 4. Remove all parentheses
-        $address = str_replace(['(', ')'], '', $address);
-        // 5. Remove trailing periods
-        $address = rtrim($address, '.');
-        // 6. Make everything lower case, then Title-Case
-        $address = mb_convert_case(mb_strtolower($address, 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
-        // 7. Expand/rename street type abbreviations (dr, pl, drv, etc.)
-        $abbrevs = [
-            '/\bRd\b/i' => 'Road',
-            '/\bDrv\b/i' => 'Drive',
-            '/\bDr\b/i' => 'Drive',
-            '/\bPl\b/i' => 'Place',
-            '/\bSt\b/i' => 'Street',
-            '/\bAve\b/i' => 'Avenue',
-            '/\bCres\b/i' => 'Crescent',
-            '/\bBlvd\b/i' => 'Boulevard',
-            '/\bPde\b/i' => 'Parade',
-            '/\bHwy\b/i' => 'Highway',
-            '/\bTce\b/i' => 'Terrace',
-            '/\bCt\b/i' => 'Court',
-            '/\bGr\b/i' => 'Grove',
-            '/\bLne\b/i' => 'Lane',
-            '/\bLn\b/i' => 'Lane',
-            '/\bCl\b/i' => 'Close',
-            '/\bPkwy\b/i' => 'Parkway',
-            '/\bMews\b/i' => 'Mews',
-            '/\bWay\b/i' => 'Way',
-            '/\bCct\b/i' => 'Circuit',
-            '/\bBvd\b/i' => 'Boulevard',
-        ];
-        foreach ($abbrevs as $pattern => $replacement) {
-            $address = preg_replace($pattern, $replacement, $address);
-        }
-        // --- END SANITIZATION ---
+        // --- REMOVED SANITIZATION STEP (normalization skipped as requested) ---
+        // $address is used as-is for parsing
         $lot = $unit = $streetNum = null;
         $street = $address;
 
@@ -726,18 +681,18 @@ class PropertyImportSeeder extends Seeder
             $street = $m[3];
         }
         // 6. 13-15 Norman Street (street number range, no unit)
-        elseif (preg_match('/^(\d+[A-Za-z]?-\d+[A-ZaZ]?)\s+(.+)/', $street, $m)) {
+        elseif (preg_match('/^(\d+[A-Za-z]?\-\d+[A-ZaZ]?)\s+(.+)/', $street, $m)) {
             $streetNum = $m[1];
             $street = $m[2];
         }
         // 7. 28b 168-172 Willarong Rd (unit with letter, street number range)
-        elseif (preg_match('/^(\d+[A-Za-z])\s+(\d+-\d+)\s+(.+)/', $street, $m)) {
+        elseif (preg_match('/^(\d+[A-Za-z])\s+(\d+\-\d+)\s+(.+)/', $street, $m)) {
             $unit = $m[1];
             $streetNum = $m[2];
             $street = $m[3];
         }
         // 8. 1-4/1 Black (unit range, street number)
-        elseif (preg_match('/^(\d+-\d+)\/(\d+[A-Za-z]?)\s+(.+)/', $street, $m)) {
+        elseif (preg_match('/^(\d+\-\d+)\/(\d+[A-Za-z]?)\s+(.+)/', $street, $m)) {
             $unit = $m[1];
             $streetNum = $m[2];
             $street = $m[3];
@@ -752,20 +707,9 @@ class PropertyImportSeeder extends Seeder
             $streetNum = $m[1];
             $street = trim(substr($street, strlen($m[1])));
         }
-        // Clean up street name
+        // Clean up street name (minimal, no normalization)
         $street = preg_replace('/^[,\s]+/', '', $street);
-        // Remove everything after the first comma
         $street = preg_replace('/,.*/', '', $street);
-        // Remove everything after the first recognized street type (e.g. Road, Drive, Place, etc.)
-        $streetTypes = [
-            'Road', 'Drive', 'Place', 'Street', 'Avenue', 'Crescent', 'Boulevard', 'Parade', 'Highway', 'Terrace', 'Court', 'Grove', 'Lane', 'Close', 'Parkway', 'Mews', 'Way', 'Circuit', 'Boulevard'
-        ];
-        $streetTypePattern = implode('|', array_map(function($t) { return substr($t, 0, 2) . '\w*'; }, $streetTypes));
-        $street = preg_replace('/\b(' . $streetTypePattern . ')\b[^,]*.*/i', '$1', $street, 1);
-        $street = mb_convert_case($street, MB_CASE_TITLE, 'UTF-8');
-        foreach ($abbrevs as $pattern => $replacement) {
-            $street = preg_replace($pattern, $replacement, $street);
-        }
         $street = preg_replace('/\s{2,}/', ' ', $street);
         $street = trim($street, ",.;:- ");
         return [

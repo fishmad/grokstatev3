@@ -15,8 +15,8 @@ interface Address {
   state?: string;
   country?: string;
   postcode?: string;
-  lat?: string;
-  long?: string;
+  latitude?: string;
+  longitude?: string;
   country_id?: number;
   state_id?: number;
   suburb_id?: number;
@@ -159,8 +159,8 @@ export default function AddressAutofill({ onSelect, defaultValue }: AddressAutof
           state: get('administrative_area_level_1') || '',
           country: get('country') || '',
           postcode: get('postal_code') || '',
-          lat: place.geometry?.location?.lat().toString() || '',
-          long: place.geometry?.location?.lng().toString() || '',
+          latitude: place.geometry?.location?.latitude().toString() || '',
+          longitude: place.geometry?.location?.longitude().toString() || '',
         };
 
         // Resolve with /resolve-location
@@ -291,15 +291,15 @@ export default function AddressAutofill({ onSelect, defaultValue }: AddressAutof
           type="number"
           step="0.00000001"
           placeholder="Latitude (optional)"
-          value={manualAddress.lat || ''}
-          onChange={(e) => setManualAddress({ ...manualAddress, lat: e.target.value })}
+          value={manualAddress.latitude || ''}
+          onChange={(e) => setManualAddress({ ...manualAddress, latitude: e.target.value })}
         />
         <Input
           type="number"
           step="0.00000001"
           placeholder="Longitude (optional)"
-          value={manualAddress.long || ''}
-          onChange={(e) => setManualAddress({ ...manualAddress, long: e.target.value })}
+          value={manualAddress.longitude || ''}
+          onChange={(e) => setManualAddress({ ...manualAddress, longitude: e.target.value })}
         />
       </div>
       <Button type="button" onClick={handleManualSubmit}>Resolve Address</Button>

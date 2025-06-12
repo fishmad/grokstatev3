@@ -96,15 +96,13 @@ const GoogleAddressMapInput = forwardRef(function GoogleAddressMapInput({ value,
             street_number,
             street_name,
             unit_number,
-            region_name, // <-- add region_name to payload
-            site_name: municipality, // <-- set site_name to level 1
+            region_name,
             suburb: suburbVal,
             postcode: postcodeVal,
             state: stateVal,
             country: countryVal,
-            lat,
-            lng,
-            long: lng,
+            latitude: lat, // <-- add latitude
+            longitude: lng, // <-- add longitude
             formatted_address: place.formatted_address,
           });
         } else {
@@ -151,7 +149,6 @@ const GoogleAddressMapInput = forwardRef(function GoogleAddressMapInput({ value,
           street_name,
           unit_number,
           region_name, // <-- add region_name to payload
-          site_name: municipality, // <-- set site_name to level 1
           suburb: suburbVal,
           postcode: postcodeVal,
           state: stateVal,

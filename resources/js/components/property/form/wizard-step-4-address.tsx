@@ -69,10 +69,9 @@ export default function WizardStep4Location({ data, setData, errors, nextStep, c
         <Input type="text" placeholder="State" value={data.address?.state || ''} onChange={e => setData('address', { ...data.address, state: e.target.value })} required />
         <Input type="text" placeholder="Country" value={data.address?.country || ''} onChange={e => setData('address', { ...data.address, country: e.target.value })} required />
 
-        <Input type="text" placeholder="Site Name (optional)" value={data.address?.site_name || ''} onChange={e => setData('address', { ...data.address, site_name: e.target.value })} />
         <Input type="text" placeholder="Region Name (optional)" value={data.address?.region_name || ''} onChange={e => setData('address', { ...data.address, region_name: e.target.value })} />
-        <Input type="number" step="0.00000001" placeholder="Latitude (optional)" value={data.address?.lat || ''} onChange={e => setData('address', { ...data.address, lat: e.target.value })} />
-        <Input type="number" step="0.00000001" placeholder="Longitude (optional)" value={data.address?.long || ''} onChange={e => setData('address', { ...data.address, long: e.target.value })} />
+        <Input type="number" step="0.00000001" placeholder="Latitude (optional)" value={data.address?.latitude || ''} onChange={e => setData('address', { ...data.address, latitude: e.target.value })} />
+        <Input type="number" step="0.00000001" placeholder="Longitude (optional)" value={data.address?.longitude || ''} onChange={e => setData('address', { ...data.address, longitude: e.target.value })} />
       </div>
     </div>
   );

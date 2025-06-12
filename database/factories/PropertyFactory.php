@@ -58,12 +58,9 @@ class PropertyFactory extends Factory
                 'street_name' => fake()->streetName(),
                 'unit_number' => fake()->optional()->buildingNumber(),
                 'lot_number' => fake()->optional()->buildingNumber(),
-                'site_name' => fake()->optional()->company(),
                 'region_name' => fake()->optional()->citySuffix(),
-                'latitude' => fake()->latitude(-44, -10), // Australia latitude range
-                'longitude' => fake()->longitude(112, 154), // Australia longitude range
-                'lat' => fake()->latitude(-44, -10), // TBA replace with 'latitude' if needed
-                'long' => fake()->longitude(112, 154), // TBA replace with 'longitude' if needed
+                'latitude' => fake()->latitude(-44, -10),
+                'longitude' => fake()->longitude(112, 154),
                 'display_address_on_map' => true,
                 'display_street_view' => true,
             ]);

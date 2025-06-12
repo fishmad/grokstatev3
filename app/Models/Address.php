@@ -11,14 +11,12 @@ class Address extends Model
         'suburb_id',
         'country_id',
         'state_id',
+        'region_id',
         'street_number',
         'street_name',
         'unit_number',
         'lot_number',
-        'site_name',
         'region_name',
-        'lat',
-        'long',
         'latitude',
         'longitude',
         'postcode',
@@ -26,7 +24,7 @@ class Address extends Model
         'display_street_view',
     ];
 
-    protected $with = ['suburb', 'state', 'country'];
+    protected $with = ['suburb', 'state', 'country', 'region'];
 
     public function property()
     {
@@ -43,6 +41,10 @@ class Address extends Model
     public function state()
     {
         return $this->belongsTo(State::class, 'state_id');
+    }
+    public function region()
+    {
+        return $this->belongsTo(Region::class, 'region_id');
     }
 
     // Computed attributes for serialization (not relationships)

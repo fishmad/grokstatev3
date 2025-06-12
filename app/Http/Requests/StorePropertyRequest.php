@@ -28,10 +28,9 @@ class StorePropertyRequest extends FormRequest
             'address.street_name' => 'required|string|max:255',
             'address.unit_number' => 'nullable|string|max:50',
             'address.lot_number' => 'nullable|string|max:50',
-            'address.site_name' => 'nullable|string|max:255',
             'address.region_name' => 'nullable|string|max:255',
-            'address.lat' => 'nullable|numeric',
-            'address.long' => 'nullable|numeric',
+            'address.latitude' => 'nullable|numeric',
+            'address.longitude' => 'nullable|numeric',
             'address.display_address_on_map' => 'nullable|boolean',
             'address.display_street_view' => 'nullable|boolean',
             'address.country' => 'required|string|max:255', // Validate string country from address object

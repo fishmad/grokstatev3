@@ -45,7 +45,7 @@ I think my front end and back end aren't using the same flattened or array type 
 >   if (data.address) {
 >     const addressFields = [
 >       'street_name', 'street_number', 'unit_number', 'lot_number', 'site_name', 'region_name',
->       'lat', 'long', 'display_address_on_map', 'display_street_view'
+>       'latitude', 'longitude', 'display_address_on_map', 'display_street_view'
 >     ];
 >     addressFields.forEach(field => {
 >       if (data.address[field as keyof AddressForm] !== undefined)
@@ -122,7 +122,7 @@ I need them to frontend create propertie form to send data the way the backend n
 >   if (data.address) {
 >     const addressFields = [
 >       'street_number', 'street_name', 'unit_number', 'lot_number', 'site_name', 'region_name',
->       'lat', 'long', 'display_address_on_map', 'display_street_view'
+>       'latitude', 'longitude', 'display_address_on_map', 'display_street_view'
 >     ];
 >     addressFields.forEach(field => {
 >       if (data.address[field as keyof AddressForm] !== undefined)
@@ -603,7 +603,7 @@ set __proto__
 >   if (data.address) {
 >     const addressFields = [
 >       'street_name', 'street_number', 'unit_number', 'lot_number', 'site_name', 'region_name',
->       'lat', 'long', 'display_address_on_map', 'display_street_view'
+>       'latitude', 'longitude', 'display_address_on_map', 'display_street_view'
 >     ];
 >     addressFields.forEach(field => {
 >       if (data.address[field as keyof AddressForm] !== undefined) {
@@ -682,7 +682,7 @@ what is the best practice, safer
 >   if (data.address) {
 >     const addressFields = [
 >       'street_name', 'street_number', 'unit_number', 'lot_number', 'site_name', 'region_name',
->       'lat', 'long', 'display_address_on_map', 'display_street_view'
+>       'latitude', 'longitude', 'display_address_on_map', 'display_street_view'
 >     ];
 >     addressFields.forEach(field => {
 >       if (data.address[field as keyof AddressForm] !== undefined) {
@@ -816,7 +816,7 @@ handleSubmit	@	properties-create.tsx:173
 >      if (data.address) {
 >        const addressFields = [
 >          'street_name', 'street_number', 'unit_number', 'lot_number', 'site_name', 'region_name',
->          'lat', 'long', 'display_address_on_map', 'display_street_view'
+>          'latitude', 'longitude', 'display_address_on_map', 'display_street_view'
 >        ];
 >        addressFields.forEach(field => {
 >          if (data.address[field as keyof AddressForm] !== undefined) {
@@ -888,7 +888,7 @@ sorry I mean I cant use that, how else can it be done
 >   if (data.address) {
 >     const addressFields = [
 >       'street_name', 'street_number', 'unit_number', 'lot_number', 'site_name', 'region_name',
->       'lat', 'long', 'display_address_on_map', 'display_street_view'
+>       'latitude', 'longitude', 'display_address_on_map', 'display_street_view'
 >     ];
 >     addressFields.forEach(field => {
 >       if (data.address[field as keyof AddressForm] !== undefined) {
@@ -1042,7 +1042,7 @@ set __proto__
 >   if (data.address) {
 >     const addressFields = [
 >       'street_name', 'street_number', 'unit_number', 'lot_number', 'site_name', 'region_name',
->       'lat', 'long', 'display_address_on_map', 'display_street_view'
+>       'latitude', 'longitude', 'display_address_on_map', 'display_street_view'
 >     ];
 >     addressFields.forEach(field => {
 >       if (data.address[field as keyof AddressForm] !== undefined) {
@@ -1201,7 +1201,7 @@ TypeError: prices.map is not a function
 >   if (data.address) {
 >     const addressFields = [
 >       'street_name', 'street_number', 'unit_number', 'lot_number', 'site_name', 'region_name',
->       'lat', 'long', 'display_address_on_map', 'display_street_view'
+>       'latitude', 'longitude', 'display_address_on_map', 'display_street_view'
 >     ];
 >     addressFields.forEach(field => {
 >       if (data.address[field as keyof AddressForm] !== undefined) {
@@ -1351,7 +1351,7 @@ set __proto__
 >   if (data.address) {
 >     const addressFields = [
 >       'street_name', 'street_number', 'unit_number', 'lot_number', 'site_name', 'region_name',
->       'lat', 'long', 'display_address_on_map', 'display_street_view'
+>       'latitude', 'longitude', 'display_address_on_map', 'display_street_view'
 >     ];
 >     addressFields.forEach(field => {
 >       submission[field] = data.address[field as keyof AddressForm] ?? '';

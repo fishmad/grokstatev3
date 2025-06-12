@@ -20,7 +20,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        echo "\n[DatabaseSeeder] Running DatabaseSeeder...\n";
 
         // Ensure Spatie roles exist before assigning
         foreach (['super-admin', 'admin', 'agent'] as $role) {

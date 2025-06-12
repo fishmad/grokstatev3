@@ -30,8 +30,8 @@ test('authenticated user can create property with address', function () {
         'state_id' => $state->id,
         'suburb_id' => $suburb->id,
         'postcode' => '2000',
-        'lat' => -33.8688,
-        'long' => 151.2093,
+        'latitude' => -33.8688,
+        'longitude' => 151.2093,
     ];
 
     $response = $this->post('/properties', $payload);

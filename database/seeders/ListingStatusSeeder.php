@@ -10,8 +10,6 @@ class ListingStatusSeeder extends Seeder
 {
     public function run(): void
     {
-        echo "\n[ListingStatusSeeder] Running ListingStatusSeeder...\n";
-
         // Backfill missing slugs for existing records
         foreach (ListingStatus::whereNull('slug')->orWhere('slug', '')->get() as $status) {
             $status->slug = Str::slug($status->name);

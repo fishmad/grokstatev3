@@ -18,8 +18,8 @@ export interface Address {
   postcode?: string;
   state?: string;
   country?: string;
-  lat?: number;
-  lng?: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 export default function AddressAutofill({ value, onChange }: AddressAutofillProps) {
@@ -60,8 +60,8 @@ export default function AddressAutofill({ value, onChange }: AddressAutofillProp
         postcode: get('postal_code'),
         state: get('administrative_area_level_1'),
         country: get('country'),
-        lat: place.geometry?.location?.lat(),
-        lng: place.geometry?.location?.lng(),
+        latitude: place.geometry?.location?.latitude(),
+        longitude: place.geometry?.location?.longitude(),
       };
       onChange(address);
       // Update display string

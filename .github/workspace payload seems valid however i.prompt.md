@@ -198,8 +198,8 @@
 >                 'lot_number' => $addressData['lot_number'] ?? null,
 >                 'site_name' => $addressData['site_name'] ?? null,
 >                 'region_name' => $addressData['region_name'] ?? null,
->                 'lat' => $addressData['lat'] ?? null,
->                 'long' => $addressData['long'] ?? ($addressData['lng'] ?? null), // Handle 'long' or 'lng'
+>                 'latitude' => $addressData['latitude'] ?? null,
+>                 'longitude' => $addressData['longitude'] ?? ($addressData['lng'] ?? null), // Handle 'longitude' or 'lng'
 >                 'display_address_on_map' => $addressData['display_address_on_map'] ?? true,
 >                 'display_street_view' => $addressData['display_street_view'] ?? true,
 >             ]);

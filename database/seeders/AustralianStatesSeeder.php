@@ -10,8 +10,6 @@ class AustralianStatesSeeder extends Seeder
 {
     public function run(): void
     {
-        echo "\n[AustralianStatesSeeder] Running AustralianStatesSeeder...\n";
-
         $australia = Country::where('name', 'Australia')->first();
         if (!$australia) {
             $australia = Country::create(['name' => 'Australia']);
