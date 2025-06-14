@@ -34,6 +34,11 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'paypal' => [
+        'client_id' => env('PAYPAL_CLIENT_ID'),
+        'client_secret' => env('PAYPAL_CLIENT_SECRET'),
+        'sandbox' => env('PAYPAL_SANDBOX', true), // Set to false for production
+    ],
     
     'rea' => [
         'client_id' => env('REA_CLIENT_ID'),
@@ -46,7 +51,7 @@ return [
     ],
 
     'google_places' => [
-        'api_key' => env('GOOGLE_MAPS_API_KEY'), // Use the same key unless you have a separate one for Places
+        'api_key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
     'stripe' => [

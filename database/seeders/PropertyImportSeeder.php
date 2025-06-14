@@ -507,11 +507,11 @@ class PropertyImportSeeder extends Seeder
                 $imageName = $img['listingsimages_file_name'];
                 $sourceImagePath = storage_path('app/public/media/' . $imageName);
                 // TEMP: Remove file_exists check for debugging
-                $mediaUrl = 'media/' . $imageName;
+                // $mediaUrl = '/images/listing_photos/' . $imageName;
                 Media::create([
                     'property_id' => $property->id,
                     'type' => 'image',
-                    'url' => $mediaUrl,
+                    'url' => $imageName,
                 ]);
                 \Log::info("[PropertyImportSeeder] Linked image '{$imageName}' to property ID {$property->id}");
                 // Uncomment below to restore file check after debugging

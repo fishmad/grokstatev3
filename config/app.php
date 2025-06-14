@@ -54,6 +54,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'asset_url' => env('ASSET_URL', 'http://localhost'), // To help with shared hosting environments
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
