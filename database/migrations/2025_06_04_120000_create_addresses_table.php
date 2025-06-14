@@ -22,20 +22,20 @@ return new class extends Migration
             $table->foreignId('region_id')->nullable()->constrained('regions')->onDelete('set null');
             $table->string('address_line_1')->nullable(); // Unit or street address
             $table->string('address_line_2')->nullable(); // Additional address information
-            $table->string('suburb')->nullable(); // Suburb
-            $table->string('city')->nullable(); // City
-            $table->string('state')->nullable(); // State
-            $table->string('country')->nullable(); // Country
             $table->string('postcode')->nullable(); // Postal code
-            $table->string('region_name')->nullable(); // Region name (Council, Shire, etc.)
+            $table->string('suburb_name')->nullable(); // Suburb Name
+            $table->string('state_name')->nullable(); // State Name
+            $table->string('country_name')->nullable(); // Country Name
+            $table->string('lot_number')->nullable();
+            $table->string('unit_number')->nullable();
             $table->string('street_number')->nullable();
             $table->string('street_name')->nullable(); 
             $table->string('street_type')->nullable(); // Type of street (e.g., Street, Avenue, Road)
-            $table->string('is_unit')->nullable(); // Indicates if the address is a unit or apartment
-            $table->string('unit_number')->nullable();
-            $table->string('is_lot')->nullable(); // Indicates if the address is a lot
-            $table->string('lot_number')->nullable();
-            $table->string('is_complex')->nullable(); // Indicates if the address is a complex (e.g., apartment complex, gated community)
+            $table->string('city_name')->nullable(); // City Sydney 
+            $table->string('region_name')->nullable(); // Region name (Council, Shire, etc.)
+            $table->boolean('is_unit')->nullable(); // Indicates if the address is a unit or apartment
+            $table->boolean('is_lot')->nullable(); // Indicates if the address is a lot
+            $table->boolean('is_complex')->nullable(); // Indicates if the address is a complex (e.g., apartment complex, gated community)
             $table->string('complex_number')->nullable(); // Complex number if applicable
             $table->string('complex_street_name')->nullable(); // Complex street name if applicable
             $table->string('complex_name')->nullable();

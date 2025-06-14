@@ -17,6 +17,32 @@ class PropertyImportSeeder extends Seeder
 
     public function run()
     {
+        // Load AU.txt for suburb lat/lng lookup
+        $auTowns = [];
+        $auFile = base_path('AU.txt');
+        if (file_exists($auFile)) {
+            $handle = fopen($auFile, 'r');
+            while (($line = fgets($handle)) !== false) {
+                $parts = explode("\t", $line);
+                if (count($parts) > 7) {
+                    $name = strtolower(trim($parts[1]));
+                    $state = strtoupper(trim($parts[10] ?? ''));
+                    $postcode = trim($parts[8] ?? '');
+                    $lat = trim($parts[4]); // Correct: column 4
+                    $lng = trim($parts[5]); // Correct: column 5
+                    // Key by name+state+postcode for best match (state always uppercase)
+                    $auTowns[$name.'|'.$state.'|'.$postcode] = ['lat' => $lat, 'lng' => $lng];
+                    $auTowns[$name.'|'.$state] = ['lat' => $lat, 'lng' => $lng]; // fallback
+                    $auTowns[$name] = ['lat' => $lat, 'lng' => $lng]; // fallback
+                }
+            }
+            fclose($handle);
+        }
+
+        // DEV: Limit number of records to import for testing (set to null or 0 for all)
+        $importLimit = 0; // Set to 20 for testing, null or 0 for all records
+        $importedCount = 0;
+
         // 1. Load all CSVs into arrays
         $listings = $this->csvToArray(database_path('conversion/src/other_en_listingsdb.csv'));
         $users = $this->csvToArray(database_path('conversion/src/other_en_userdb.csv'));
@@ -34,6 +60,9 @@ class PropertyImportSeeder extends Seeder
 
         // 3. Import properties
         foreach ($listings as $row) {
+            if ($importLimit && $importedCount >= $importLimit) break;
+            $importedCount++;
+
             // Skip rows missing required keys
             if (!isset($row['listingsdb_id']) || !isset($row['listingsdb_title'])) {
                 \Log::warning("[PropertyImportSeeder] Skipping row: missing listingsdb_id or listingsdb_title. Row data: " . json_encode($row));
@@ -371,7 +400,7 @@ class PropertyImportSeeder extends Seeder
             }
 
             // --- Fallback logic for key fields with more possible keys ---
-            $suburbKeys = ['town', 'suburb', 'locality', 'address_town'];
+            $suburbKeys = ['town'];
             $suburbName = null;
             foreach ($suburbKeys as $key) {
                 if (!empty($attributes[$key])) {
@@ -452,8 +481,57 @@ class PropertyImportSeeder extends Seeder
                 \Log::warning("[PropertyImportSeeder] No suburb/town found for property ID {$property->id}. Available keys: " . json_encode(array_keys($row)) . ", attributes: " . json_encode(array_keys($attributes)));
             }
 
+            // --- Suburb AU.txt lat/lng lookup ---
+            $suburbLat = null;
+            $suburbLng = null;
+            if ($suburbName && $stateValue && $postcode) {
+                $normSuburb = strtolower(trim(preg_replace('/\s+/', ' ', $suburbName)));
+                $normState = strtoupper(trim($stateValue));
+                $normPostcode = trim($postcode);
+                $keyFull = $normSuburb.'|'.$normState.'|'.$normPostcode;
+                $keyNoPost = $normSuburb.'|'.$normState;
+                $keySuburb = $normSuburb;
+                if (isset($auTowns[$keyFull])) {
+                    $suburbLat = $auTowns[$keyFull]['lat'];
+                    $suburbLng = $auTowns[$keyFull]['lng'];
+                } elseif (isset($auTowns[$keyNoPost])) {
+                    $suburbLat = $auTowns[$keyNoPost]['lat'];
+                    $suburbLng = $auTowns[$keyNoPost]['lng'];
+                } elseif (isset($auTowns[$keySuburb])) {
+                    $suburbLat = $auTowns[$keySuburb]['lat'];
+                    $suburbLng = $auTowns[$keySuburb]['lng'];
+                }
+            }
+            if ($suburb) {
+                // Always update slug to match 'slugified-suburb-name-postcode'
+                $suburb->slug = \Illuminate\Support\Str::slug($suburb->name) . '-' . $suburb->postcode;
+                $suburb->latitude = $suburbLat;
+                $suburb->longitude = $suburbLng;
+                $suburb->touch(); // update timestamps
+                $suburb->save();
+            } else if ($suburbName && $stateId && $postcode) {
+                $baseSlug = \Illuminate\Support\Str::slug($suburbName) . '-' . $postcode;
+                $slug = $baseSlug;
+                $i = 2;
+                while (\App\Models\Suburb::where('slug', $slug)->exists()) {
+                    $slug = $baseSlug . '-' . $i;
+                    $i++;
+                }
+                $suburb = \App\Models\Suburb::create([
+                    'name' => $suburbName,
+                    'state_id' => $stateId,
+                    'postcode' => $postcode,
+                    'slug' => $slug,
+                    'latitude' => $suburbLat,
+                    'longitude' => $suburbLng,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                \Log::info("[PropertyImportSeeder] Created new suburb '{$suburbName}' (ID: {$suburb->id}) for property ID {$property->id} with state_id {$stateId} and postcode {$postcode}");
+            }
+
             // Address fallback: use more possible keys
-            $streetKeys = ['street_name', 'address', 'street', 'street_address'];
+            $streetKeys = ['address'];
             $streetNameRaw = null;
             foreach ($streetKeys as $key) {
                 if (!empty($attributes[$key])) {
@@ -467,25 +545,98 @@ class PropertyImportSeeder extends Seeder
             $lotNumber = $unitNumber = $streetNumber = $streetName = null;
             if (!empty($streetNameRaw)) {
                 // Extract lot, unit, street number, and cleaned street name
-                [$lotNumber, $unitNumber, $streetNumber, $streetName] = $this->extractAddressParts($streetNameRaw);
-                // Do NOT overwrite with nulls or raw value; use parsed values
-            }
-            if (!empty($streetName)) {
+                [$lotNumber, $unitNumber, $streetNumber, $streetNameExtracted] = $this->extractAddressParts($streetNameRaw);
+
+                // 1. Extract street type from streetNameRaw (not normalized)
+                $streetType = null;
+                if (preg_match('/\\b(Road|Drive|Place|Street|Avenue|Crescent|Boulevard|Parade|Highway|Terrace|Court|Grove|Lane|Close|Parkway|Mews|Way|Circuit)\\b/i', $streetNameRaw, $m)) {
+                    $streetType = $m[1];
+                }
+
+                // 2. Copy raw street name to address_line_1
+                $addressLine1 = $streetNameRaw;
+
+                // 3. Suburb, state, country text columns (with correct casing)
+                $suburbText = $suburbName ? \Illuminate\Support\Str::title($suburbName) : null;
+                $stateText = $stateValue ? strtoupper($stateValue) : null;
+                $countryText = 'Australia'; // or use a value from your data if available
+
+                // 4. If street number contains a letter, treat as unit
+                if (preg_match('/^([0-9]+[A-Za-z])$/', $streetNumber, $m)) {
+                    $unitNumber = strtoupper($m[1]);
+                    $streetNumber = null;
+                }
+
+                // 5. is_unit and is_lot flags
+                $isUnit = 0;
+                $isLot = 0;
+                if ($unitNumber || preg_match('/\\b(unit|flat|apartment|suite|shop|villa|lot)\\b/i', $streetNameRaw)) {
+                    $isUnit = 1;
+                }
+                if ($lotNumber || preg_match('/\\blot\\b/i', $streetNameRaw)) {
+                    $isLot = 1;
+                }
+
+                // 6. display_address_on_map and display_street_view always 1
+                $displayAddressOnMap = 1;
+                $displayStreetView = 1;
+
+                // 7. display_suburb_only flag
+                $hasStreetType = !empty($streetType);
+                $hasUnitNumber = !empty($unitNumber);
+                $hasLotNumber = !empty($lotNumber);
+                $hasStreetNumber = !empty($streetNumber);
+                $isAvailableOnRequest = stripos($streetNameRaw, 'available on request') !== false;
+                $isTextOnly = !$hasStreetType && !$hasUnitNumber && !$hasLotNumber && !$hasStreetNumber && !$isAvailableOnRequest && preg_match('/[a-zA-Z]/', $streetNameRaw);
+                $displaySuburbOnly = ($isTextOnly || $isAvailableOnRequest) ? 1 : 0;
+
+                // --- Improved normalization and matching for AU.txt lat/lng ---
+                $lat = $attributes['latitude'] ?? $row['latitude'] ?? null;
+                $lng = $attributes['longitude'] ?? $row['longitude'] ?? null;
+                if ((!$lat || !$lng) && $suburbName && $stateText && $postcode) {
+                    $normSuburb = strtolower(trim(preg_replace('/\s+/', ' ', $suburbName)));
+                    $normState = strtoupper(trim($stateText));
+                    $normPostcode = trim($postcode);
+                    $keyFull = $normSuburb.'|'.$normState.'|'.$normPostcode;
+                    $keyNoPost = $normSuburb.'|'.$normState;
+                    $keySuburb = $normSuburb;
+                    if (isset($auTowns[$keyFull])) {
+                        $lat = $auTowns[$keyFull]['lat'];
+                        $lng = $auTowns[$keyFull]['lng'];
+                    } elseif (isset($auTowns[$keyNoPost])) {
+                        $lat = $auTowns[$keyNoPost]['lat'];
+                        $lng = $auTowns[$keyNoPost]['lng'];
+                    } elseif (isset($auTowns[$keySuburb])) {
+                        $lat = $auTowns[$keySuburb]['lat'];
+                        $lng = $auTowns[$keySuburb]['lng'];
+                    } else {
+                        \Log::debug("[PropertyImportSeeder] No AU.txt lat/lng match for: '$keyFull', '$keyNoPost', '$keySuburb'");
+                    }
+                }
+
                 $addressData = [
                     'property_id' => $property->id,
                     'suburb_id' => $suburb ? $suburb->id : null,
                     'country_id' => 1, // Set to 1 (Australia) or update to match your country table if needed
                     'state_id' => $stateId,
                     'street_number' => $streetNumber,
-                    'street_name' => $streetName,
+                    'street_name' => $streetNameRaw, // RAW VALUE ONLY
+                    'address_line_1' => $addressLine1,
                     'unit_number' => $unitNumber,
                     'lot_number' => $lotNumber,
+                    'street_type' => $streetType,
+                    'suburb_name' => $suburbText,
+                    'state_name' => $stateText,
+                    'country_name' => $countryText,
                     'region_name' => $attributes['region_name'] ?? $row['region_name'] ?? null,
-                    'latitude' => $attributes['latitude'] ?? $row['latitude'] ?? null,
-                    'longitude' => $attributes['longitude'] ?? $row['longitude'] ?? null,
+                    'latitude' => $lat,
+                    'longitude' => $lng,
                     'postcode' => $attributes['postcode'] ?? $row['postcode'] ?? null,
-                    'display_address_on_map' => isset($attributes['display_address_on_map']) && $attributes['display_address_on_map'] !== '' ? $attributes['display_address_on_map'] : (isset($row['display_address_on_map']) && $row['display_address_on_map'] !== '' ? $row['display_address_on_map'] : 0),
-                    'display_street_view' => isset($attributes['display_street_view']) && $attributes['display_street_view'] !== '' ? $attributes['display_street_view'] : (isset($row['display_street_view']) && $row['display_street_view'] !== '' ? $row['display_street_view'] : 0),
+                    'is_unit' => $isUnit,
+                    'is_lot' => $isLot,
+                    'display_address_on_map' => $displayAddressOnMap,
+                    'display_street_view' => $displayStreetView,
+                    'display_suburb_only' => $displaySuburbOnly,
                 ];
                 
                 \App\Models\Address::updateOrCreate(

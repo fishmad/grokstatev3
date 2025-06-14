@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Suburb extends Model
 {
-    protected $fillable = ['name', 'postcode', 'state_id'];
+    protected $fillable = ['state_id', 'name', 'locality', 'slug', 'postcode', 'latitude', 'longitude'];
 
     public function state()
     {

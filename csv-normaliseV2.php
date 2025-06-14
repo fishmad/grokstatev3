@@ -2,7 +2,7 @@
 
 // Config
 $inputFile = __DIR__ . '/database/conversion/in/other_en_listingsdbelements.csv';
-$outputFile = __DIR__ . '/database/conversion/out/cleaned_listings.csv';
+$outputFile = __DIR__ . '/database/conversion/out/cleaned_listingsV2.csv';
 
 // Download Geonames AU towns list if not present
 $geonamesUrl = 'https://download.geonames.org/export/dump/AU.zip';
@@ -34,29 +34,67 @@ fclose($handle);
 
 // Street type mapping
 $streetTypes = [
-    'st' => 'Street',
-    'rd' => 'Road',
-    'ave' => 'Avenue',
-    'blvd' => 'Boulevard',
-    'ct' => 'Court',
-    'cres' => 'Crescent',
-    'dr' => 'Drive',
-    'drv' => 'Drive',
-    'hwy' => 'Highway',
-    'ln' => 'Lane',
-    'pl' => 'Place',
-    'pde' => 'Parade',
-    'ter' => 'Terrace',
-    'tce' => 'Terrace', // Add Tce as Terrace
-    'way' => 'Way',
-    'sq' => 'Square',
-    'trl' => 'Trail',
-    'cct' => 'Circuit',
-    'gr' => 'Grove',
-    'cl' => 'Close',
-    'walk' => 'Walk',
-    'mews' => 'Mews',
-    'bvd' => 'Boulevard',
+        'anchorage' => 'Anchorage',
+        'ave.' => 'Avenue',
+        'ave' => 'Avenue',
+        'ave' => 'Avenue',
+        'beach' => 'Beach',
+        'bend' => 'Bend',
+        'blvd' => 'Boulevard',
+        'bvld' => 'Boulevard',
+        'broadway' => 'Broadway',
+        'cct' => 'Circuit',
+        'cl' => 'Close',
+        'cres.' => 'Crescent',
+        'cres' => 'Crescent',
+        'crt' => 'Court',
+        'ct.' => 'Court',
+        'ct' => 'Court',
+        'cutting' => 'Cutting',
+        'dr' => 'Drive',
+        'drv' => 'Drive',
+        'dv' => 'Drive',
+        'dve' => 'Drive',
+        'entrance' => 'Entrance',
+        'esplanade' => 'Esplanade',
+        'garden' => 'Garden',
+        'gardens' => 'Gardens',
+        'grove' => 'Grove',
+        'heights' => 'Heights',
+        'h/way' => 'Highway',
+        'h\'way' => 'Highway',
+        'hwy.' => 'Highway',
+        'hwy' => 'Highway',
+        'island' => 'Island',
+        'ln' => 'Lane',
+        'loop' => 'Loop',
+        'mews' => 'Mews',
+        'mount' => 'Mount',
+        'mountain' => 'Mountain',
+        'monte' => 'Monte',
+        'nook' => 'Nook',
+        'outlook' => 'Outlook',
+        'park' => 'Park',
+        'parkway' => 'Parkway',
+        'passage' => 'Passage',
+        'pass' => 'Pass',
+        'pde' => 'Parade',
+        'pl' => 'Place',
+        'place,' => 'Place',
+        'promenade' => 'Promenade',
+        'rise' => 'Rise',
+        'rd.' => 'Road',
+        'rd' => 'Road',
+        'sq' => 'Square',
+        'st.' => 'Street',
+        'st' => 'Street',
+        'tce' => 'Terrace',
+        'ter' => 'Terrace',
+        'track' => 'Track',
+        'turn' => 'Turn',
+        'trl' => 'Trail',
+        'way' => 'Way',
+        'wayqueensland' => 'Way',
 ];
 
 // Helper: Proper-case a string
@@ -111,8 +149,8 @@ function normalizeSuburb($suburb, $townNames = null) {
                 return $official;
             }
         }
-        // If not found in GeoNames, return blank
-        return '';
+        // If not found in GeoNames, return the normalized value instead of blank
+        return $t;
     }
     return $t;
 }
@@ -140,7 +178,7 @@ function normalizeAddress($address, $streetTypes) {
     // Always preserve the street type as the last word, and delete anything after it
     $streetTypesList = array_values($streetTypes);
     $streetTypePattern = implode('|', array_map(function($t) { return preg_quote($t, '/'); }, $streetTypesList));
-    $abbrPattern = implode('|', array_map('preg_quote', array_keys($streetTypes)));
+    $abbrPattern = implode('|', array_map(function($t) { return preg_quote($t, '/'); }, array_keys($streetTypes)));
     // Match up to and including the last street type (abbreviation or full), delete anything after
     $pattern = '/^(.+?\b(?:' . $streetTypePattern . '|' . $abbrPattern . ')\b)(?:\s+.*)?$/i';
     if (preg_match($pattern, $address, $matches)) {

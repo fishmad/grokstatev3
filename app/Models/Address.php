@@ -12,16 +12,32 @@ class Address extends Model
         'country_id',
         'state_id',
         'region_id',
+        'address_line_1',
+        'address_line_2',
+        'suburb_name',
+        'state_name',
+        'postcode',
+        'country_name',
+        'city_name',
+        'region_name',
+        'lot_number',
+        'unit_number',
         'street_number',
         'street_name',
-        'unit_number',
-        'lot_number',
-        'region_name',
+        'street_type',
+        'is_unit',
+        'is_lot',
+        'is_complex',
+        'complex_number',
+        'complex_street_name',
+        'complex_name',
+        'formatted_address',
         'latitude',
         'longitude',
-        'postcode',
         'display_address_on_map',
         'display_street_view',
+        'display_full_address',
+        'display_suburb_only',
     ];
 
     protected $with = ['suburb', 'state', 'country', 'region'];
@@ -45,15 +61,5 @@ class Address extends Model
     public function region()
     {
         return $this->belongsTo(Region::class, 'region_id');
-    }
-
-    // Computed attributes for serialization (not relationships)
-    public function getStateAttribute()
-    {
-        return $this->suburb ? $this->suburb->state : null;
-    }
-    public function getCountryAttribute()
-    {
-        return $this->suburb && $this->suburb->state ? $this->suburb->state->country : null;
     }
 }
