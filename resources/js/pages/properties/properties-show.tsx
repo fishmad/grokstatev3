@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Link, Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/welcome-layout';
 import { getImageUrl } from '@/utils/getImageUrl';
+import { MapPin, BedDouble, Bath, CarFront, Building2 } from 'lucide-react';
 
 export default function PropertiesShow({ property }: any) {
   const breadcrumbs = [
@@ -49,59 +50,62 @@ export default function PropertiesShow({ property }: any) {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={property.title || 'Property Details'} />
-      <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-8 py-8">
-        {/* Hero Section */}
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow border border-zinc-200 dark:border-zinc-800 overflow-hidden mb-8">
-          {/* Image Gallery */}
-          <div className="w-full aspect-video bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center relative">
-            <img
-              src={mainImage}
-              alt={property.title ? String(property.title) : 'Property'}
-              className="object-cover w-full h-full"
-              onError={e => { (e.target as HTMLImageElement).src = getImageUrl('media/_coming_soon.svg'); }}
-            />
-            {images.length > 1 && (
-              <div className="absolute bottom-2 right-2 flex gap-2">
-                {images.slice(0, 5).map((img: string, idx: number) => (
-                  <img
-                    key={img}
-                    src={img}
-                    alt={`Gallery ${idx + 1}`}
-                    className="w-12 h-12 object-cover rounded border border-zinc-300 dark:border-zinc-700 shadow-sm bg-white/80 dark:bg-zinc-900/80"
-                    onError={e => { (e.target as HTMLImageElement).src = getImageUrl('media/_coming_soon.svg'); }}
-                  />
-                ))}
+      <div className="container mx-auto py-6 px-4 md:px-6">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content: Image Gallery & Details */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Image Gallery Card */}
+            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+              <div className="w-full aspect-video bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center relative">
+                <img
+                  src={mainImage}
+                  alt={property.title ? String(property.title) : 'Property'}
+                  className="object-cover w-full h-full"
+                  onError={e => { (e.target as HTMLImageElement).src = getImageUrl('media/_coming_soon.svg'); }}
+                />
+                {images.length > 1 && (
+                  <div className="absolute bottom-2 right-2 flex gap-2">
+                    {images.slice(0, 5).map((img: string, idx: number) => (
+                      <img
+                        key={img}
+                        src={img}
+                        alt={`Gallery ${idx + 1}`}
+                        className="w-12 h-12 object-cover rounded border border-zinc-300 dark:border-zinc-700 shadow-sm bg-white/80 dark:bg-zinc-900/80"
+                        onError={e => { (e.target as HTMLImageElement).src = getImageUrl('media/_coming_soon.svg'); }}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          {/* Main Info */}
-          <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{property.title}</h1>
-              <div className="text-lg text-zinc-700 dark:text-zinc-300 mb-1">{address}</div>
-              <div className="text-xl font-semibold text-primary mb-2">{price}</div>
-              <div className="flex flex-wrap gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                <span>{property.property_type?.name}</span>
-                <span>• {property.beds} Beds</span>
-                <span>• {property.baths} Baths</span>
-                <span>• {property.parking_spaces} Parking</span>
-                {property.land_size && <span>• {property.land_size} {property.land_size_unit}</span>}
+              {/* Main Info */}
+              <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{property.title}</h1>
+                  <div className="text-lg text-zinc-700 dark:text-zinc-300 mb-1 flex items-center">
+                    <MapPin className="h-5 w-5 mr-1 text-primary" />
+                    {address}
+                  </div>
+                  <div className="text-xl font-semibold text-primary mb-2">{price}</div>
+                  <div className="flex flex-wrap gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                    <span>{property.property_type?.name}</span>
+                    {property.beds && <span>• <BedDouble className="inline h-4 w-4 mr-1" />{property.beds} Beds</span>}
+                    {property.baths && <span>• <Bath className="inline h-4 w-4 mr-1" />{property.baths} Baths</span>}
+                    {property.parking_spaces && <span>• <CarFront className="inline h-4 w-4 mr-1" />{property.parking_spaces} Parking</span>}
+                    {property.land_size && <span>• {property.land_size} {property.land_size_unit}</span>}
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-4 md:mt-0">
+                  <Button asChild size="sm" variant="secondary">
+                    <a href={`/properties/${property.id}/edit`}>Edit</a>
+                  </Button>
+                  <Button asChild size="sm" variant="outline">
+                    <a href="/properties">Back to List</a>
+                  </Button>
+                </div>
               </div>
             </div>
-            <div className="flex gap-2 mt-4 md:mt-0">
-              <Button asChild size="sm" variant="secondary">
-                <a href={`/properties/${property.id}/edit`}>Edit</a>
-              </Button>
-              <Button asChild size="sm" variant="outline">
-                <a href="/properties">Back to List</a>
-              </Button>
-            </div>
-          </div>
-        </div>
-        {/* Details Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-6">
-            <div>
+            {/* Description Card */}
+            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow border border-zinc-200 dark:border-zinc-800 p-6">
               <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Description</div>
               <div className="text-zinc-900 dark:text-zinc-100 whitespace-pre-line">
                 {isLongDesc ? (
@@ -120,7 +124,8 @@ export default function PropertiesShow({ property }: any) {
                 )}
               </div>
             </div>
-            <div>
+            {/* Features Card */}
+            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow border border-zinc-200 dark:border-zinc-800 p-6">
               <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Features</div>
               <div className="text-zinc-900 dark:text-zinc-100">
                 {Array.isArray(property.features) && property.features.length > 0
@@ -128,7 +133,8 @@ export default function PropertiesShow({ property }: any) {
                   : <span className="italic text-zinc-400">None</span>}
               </div>
             </div>
-            <div>
+            {/* Categories Card */}
+            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow border border-zinc-200 dark:border-zinc-800 p-6">
               <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Categories</div>
               <div className="text-zinc-900 dark:text-zinc-100">
                 {Array.isArray(property.categories) && property.categories.length > 0
@@ -136,7 +142,8 @@ export default function PropertiesShow({ property }: any) {
                   : <span className="italic text-zinc-400">None</span>}
               </div>
             </div>
-            <div>
+            {/* Dynamic Attributes Card */}
+            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow border border-zinc-200 dark:border-zinc-800 p-6">
               <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Dynamic Attributes</div>
               <div className="text-zinc-900 dark:text-zinc-100">
                 {property.dynamic_attributes && typeof property.dynamic_attributes === 'string' ?
@@ -164,7 +171,8 @@ export default function PropertiesShow({ property }: any) {
                 }
               </div>
             </div>
-            <div>
+            {/* Community Features Card */}
+            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow border border-zinc-200 dark:border-zinc-800 p-6">
               <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Community Features</div>
               <div className="text-zinc-900 dark:text-zinc-100">
                 {Array.isArray(property.community_features)
@@ -188,7 +196,8 @@ export default function PropertiesShow({ property }: any) {
                   )}
               </div>
             </div>
-            <div>
+            {/* Home Features Card */}
+            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow border border-zinc-200 dark:border-zinc-800 p-6">
               <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Home Features</div>
               <div className="text-zinc-900 dark:text-zinc-100">
                 {Array.isArray(property.home_features)
@@ -213,9 +222,10 @@ export default function PropertiesShow({ property }: any) {
               </div>
             </div>
           </div>
-          {/* Address & Details */}
-          <div className="space-y-6">
-            <div>
+          {/* Sidebar: Address & Details */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Address Card */}
+            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow border border-zinc-200 dark:border-zinc-800 p-6">
               <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Full Address</div>
               <div className="text-zinc-900 dark:text-zinc-100 space-y-1">
                 {property.address ? (
@@ -239,7 +249,8 @@ export default function PropertiesShow({ property }: any) {
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            {/* Property Details Card */}
+            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow border border-zinc-200 dark:border-zinc-800 p-6 grid grid-cols-2 gap-4">
               <div>
                 <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Beds</div>
                 <div className="text-zinc-900 dark:text-zinc-100">{property.beds}</div>
@@ -269,7 +280,8 @@ export default function PropertiesShow({ property }: any) {
                 <div className="text-zinc-900 dark:text-zinc-100">{property.building_size} {property.building_size_unit}</div>
               </div>
             </div>
-            <div>
+            {/* Listing Details Card */}
+            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow border border-zinc-200 dark:border-zinc-800 p-6">
               <div className="text-zinc-500 dark:text-zinc-400 text-xs uppercase mb-1">Listing Details</div>
               <div className="text-zinc-900 dark:text-zinc-100">
                 <div><b>Status:</b> {property.listing_status?.name}</div>

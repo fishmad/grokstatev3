@@ -446,4 +446,19 @@ class PropertyController extends Controller
         $property->update(array_merge($validated, ['status' => 'active']));
         return response()->json(['id' => $property->id, 'status' => $property->status], 200);
     }
+
+    /**
+     * Get related properties (up to 4) for a given property
+     */
+    public function getRelated(Property $property)
+    {
+        // Example: Find up to 4 properties with the same property_type, excluding the current one
+        $related = Property::where('property_type_id', $property->property_type_id)
+            ->where('id', '!=', $property->id)
+            ->with(['media', 'price'])
+            ->orderByDesc('created_at')
+            ->take(4)
+            ->get();
+        return response()->json(['related' => $related]);
+    }
 }

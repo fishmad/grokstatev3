@@ -86,7 +86,7 @@ export interface Property {
   id: number;
   title: string; // Make required and non-nullable
   slug?: string | null; // Added from PropertyResource
-  price?: number | string | null; // Allow string for formatted price, or number for raw
+  price?: number | string | null | import('./property-types').Price;
   price_min?: number | null; // Added from PropertyResource
   price_max?: number | null; // Added from PropertyResource
   price_mode?: string | null; // Added from PropertyResource
@@ -170,4 +170,19 @@ export interface PaginatedProperties {
     prev_page_url: string | null;
     to: number | null;
     total: number;
+}
+
+export interface Price {
+  id: number;
+  property_id: number;
+  price_type: string;
+  amount?: number | null;
+  range_min?: number | null;
+  range_max?: number | null;
+  label?: string | null;
+  hide_amount?: boolean;
+  penalize_search?: boolean;
+  display?: boolean;
+  tax?: string;
+  display_price?: string; // Laravel accessor
 }

@@ -14,7 +14,7 @@ import { type Property } from '@/types/property-types';
 import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Menu, Search, Home, PlusSquare, Briefcase, User, ChevronDown, LogOut, Heart, } from 'lucide-react';
 import PublicLogo from './public-logo';
-import AppearanceToggleDropdown from '@/components/appearance-dropdown';
+import AppearanceButton from '@/components/appearance-button';
 import { PublicSidebar } from './public-sidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { HeroSearchBar } from './hero-search-bar';
@@ -213,7 +213,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     );
                                 })}
 
-                                <AppearanceToggleDropdown />
+                                <AppearanceButton />
 
                                 {auth.user ? (
                                     <DropdownMenu>

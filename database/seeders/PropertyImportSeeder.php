@@ -59,7 +59,9 @@ class PropertyImportSeeder extends Seeder
         $classlistingsByListing = collect($classlistings)->groupBy('listingsdb_id');
 
         // 3. Import properties
+        $skipListings = ['218','475','560','586','635','680','721','736','738','769','827','837','893','1090','1200','1284','1382','1479'];
         foreach ($listings as $row) {
+            if (in_array((string)($row['listingsdb_id'] ?? ''), $skipListings, true)) continue;
             if ($importLimit && $importedCount >= $importLimit) break;
             $importedCount++;
 
@@ -198,6 +200,9 @@ class PropertyImportSeeder extends Seeder
             $desc = preg_replace('/<\/?p>/i', "\n", $desc);
             $desc = preg_replace('/(&nbsp;)+/i', ' ', $desc); // Replace one or more &nbsp; with a single space
             $desc = str_replace('&amp;', '&', $desc); // Convert &amp; to &
+            $desc = str_replace('"', '', $desc); // Convert &amp; to &
+            $desc = str_replace("'", '', $desc); // Convert &amp; to &
+            $desc = str_replace("'", '', $desc); // Convert &amp; to &
             // Replace common HTML entities with their text equivalents
             $desc = str_replace([
                 '&quot;', '&ldquo;', '&rdquo;', '&lsquo;', '&rsquo;', '&apos;', '&hellip;', '&frac12;', '&frac14;', '&frac34;', '&ndash;', '&mdash;', '&lt;', '&gt;', '&laquo;', '&raquo;', '&bull;', '&middot;', '&shy;', '&deg;', '&cent;', '&pound;', '&yen;', '&euro;', '&copy;', '&reg;', '&trade;', '&sup2;', '&sup3;', '&sup1;', '&ordm;', '&ordf;', '&sect;', '&para;', '&brvbar;', '&uml;', '&iexcl;', '&iquest;', '&times;', '&divide;', '&OElig;', '&oelig;', '&Scaron;', '&scaron;', '&Yuml;', '&circ;', '&tilde;', '&ensp;', '&emsp;', '&thinsp;', '&zwnj;', '&zwj;', '&lrm;', '&rlm;', '&ndash;', '&mdash;', '&lsquo;', '&rsquo;', '&sbquo;', '&ldquo;', '&rdquo;', '&bdquo;', '&dagger;', '&Dagger;', '&permil;', '&lsaquo;', '&rsaquo;', '&oline;', '&euro;', '&fnof;', '&Alpha;', '&Beta;', '&Gamma;', '&Delta;', '&Epsilon;', '&Zeta;', '&Eta;', '&Theta;', '&Iota;', '&Kappa;', '&Lambda;', '&Mu;', '&Nu;', '&Xi;', '&Omicron;', '&Pi;', '&Rho;', '&Sigma;', '&Tau;', '&Upsilon;', '&Phi;', '&Chi;', '&Psi;', '&Omega;', '&alpha;', '&beta;', '&gamma;', '&delta;', '&epsilon;', '&zeta;', '&eta;', '&theta;', '&iota;', '&kappa;', '&lambda;', '&mu;', '&nu;', '&xi;', '&omicron;', '&pi;', '&rho;', '&sigmaf;', '&sigma;', '&tau;', '&upsilon;', '&phi;', '&chi;', '&psi;', '&omega;', '&curren;'
@@ -281,7 +286,7 @@ class PropertyImportSeeder extends Seeder
             $buildingSizeUnit = null;
             $acre = 'acres';
             $sqm2 = 'sm²';
-            $hectare = 'Ha';
+            $hectare = 'Hectarea';
             $unitMap = [
                 'ac' => $acre,
 		        'acrs' => $acre,
@@ -292,6 +297,7 @@ class PropertyImportSeeder extends Seeder
                 ' m2' => $sqm2,
                 'sm' => $sqm2,
                 'sq' => $sqm2,
+                'sqm' => $sqm2,
                 ' sqm' => $sqm2,
                 'sq mts' => $sqm2,
                 'square' => $sqm2,

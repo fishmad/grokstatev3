@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Lukeraymonddowning\SelfHealingUrls\Concerns\HasSelfHealingUrls;
 
 class Property extends Model
 {
-    use HasFactory;
+    use HasFactory; 
+    use HasSelfHealingUrls;
 
     public function address()
     {

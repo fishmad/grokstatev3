@@ -1,0 +1,1641 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "X-Realty Estate API",
+        "description": "API endpoints for real estate management",
+        "contact": {
+            "name": "X-Realty Estate API Team"
+        },
+        "version": "1.0"
+    },
+    "servers": [
+        {
+            "url": "http://127.0.0.1:8000",
+            "description": "API server"
+        }
+    ],
+    "paths": {
+        "/api/addresses": {
+            "get": {
+                "tags": [
+                    "Addresses"
+                ],
+                "summary": "List all addresses",
+                "description": "List all addresses.",
+                "operationId": "a627fe87f4f824381cf3d962679431a0",
+                "responses": {
+                    "200": {
+                        "description": "List of addresses"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Addresses"
+                ],
+                "summary": "Create a new address",
+                "operationId": "6613e66261a4603b5a99c2609921beb1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "property_id",
+                                    "street_name",
+                                    "suburb",
+                                    "state",
+                                    "postcode"
+                                ],
+                                "properties": {
+                                    "property_id": {
+                                        "type": "integer"
+                                    },
+                                    "unit_number": {
+                                        "type": "string"
+                                    },
+                                    "street_number": {
+                                        "type": "string"
+                                    },
+                                    "street_name": {
+                                        "type": "string"
+                                    },
+                                    "suburb": {
+                                        "type": "string"
+                                    },
+                                    "state": {
+                                        "type": "string"
+                                    },
+                                    "postcode": {
+                                        "type": "string"
+                                    },
+                                    "country": {
+                                        "type": "string"
+                                    },
+                                    "latitude": {
+                                        "type": "number"
+                                    },
+                                    "longitude": {
+                                        "type": "number"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Address created"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/addresses/{id}": {
+            "get": {
+                "tags": [
+                    "Addresses"
+                ],
+                "summary": "Get a single address",
+                "operationId": "92763a965de009457390c7503a756a6b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Address details"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Addresses"
+                ],
+                "summary": "Update an address",
+                "operationId": "751fbf232bba1e15176549673fe92242",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "unit_number": {
+                                        "type": "string"
+                                    },
+                                    "street_number": {
+                                        "type": "string"
+                                    },
+                                    "street_name": {
+                                        "type": "string"
+                                    },
+                                    "suburb": {
+                                        "type": "string"
+                                    },
+                                    "state": {
+                                        "type": "string"
+                                    },
+                                    "postcode": {
+                                        "type": "string"
+                                    },
+                                    "country": {
+                                        "type": "string"
+                                    },
+                                    "latitude": {
+                                        "type": "number"
+                                    },
+                                    "longitude": {
+                                        "type": "number"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Address updated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Addresses"
+                ],
+                "summary": "Delete an address",
+                "operationId": "546558201c2e43117517fa351a555c08",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Address deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/agents": {
+            "get": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "List all agents",
+                "operationId": "b5a0e7c255963f218abd63d5f5f3edda",
+                "responses": {
+                    "200": {
+                        "description": "List of agents"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Create a new agent",
+                "operationId": "366eac1f4d4c09acf87db587d56f99b0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id",
+                                    "name",
+                                    "email"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "type": "integer"
+                                    },
+                                    "unique_listing_agent_id": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "agency_name": {
+                                        "type": "string"
+                                    },
+                                    "license_number": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Agent created"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/agents/{id}": {
+            "get": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Get a single agent",
+                "operationId": "86d8cb4ad94bc60f7b633395dfdc222d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agent details"
+                    },
+                    "404": {
+                        "description": "Agent not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Update an agent",
+                "operationId": "4503aa71a52f5252cb338e82d2007e08",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "agency_name": {
+                                        "type": "string"
+                                    },
+                                    "license_number": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Agent updated"
+                    },
+                    "404": {
+                        "description": "Agent not found"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Delete an agent",
+                "operationId": "b861e064ab6e0bc795fcd368358c93fd",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agent deleted"
+                    },
+                    "404": {
+                        "description": "Agent not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/favorites": {
+            "get": {
+                "tags": [
+                    "Favorites"
+                ],
+                "summary": "List all favorites",
+                "operationId": "57d3cc2e78b0db8b3305841e3e648569",
+                "responses": {
+                    "200": {
+                        "description": "List of favorites"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Favorites"
+                ],
+                "summary": "Create a new favorite",
+                "operationId": "2cfdeda4de3b0a1d84aab5433b784ecc",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id",
+                                    "property_id"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "type": "integer"
+                                    },
+                                    "property_id": {
+                                        "type": "integer"
+                                    },
+                                    "notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Favorite created"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/favorites/{id}": {
+            "get": {
+                "tags": [
+                    "Favorites"
+                ],
+                "summary": "Get a single favorite",
+                "operationId": "139936a0d7f3509d9afbfa24617d38c4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Favorite details"
+                    },
+                    "404": {
+                        "description": "Favorite not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Favorites"
+                ],
+                "summary": "Update a favorite",
+                "operationId": "2ff7adac610dacee6ce8b8f1e5f7d8fe",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Favorite updated"
+                    },
+                    "404": {
+                        "description": "Favorite not found"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Favorites"
+                ],
+                "summary": "Delete a favorite",
+                "operationId": "aca0ff54f173d89c81dfe7ce0ed5455a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Favorite deleted"
+                    },
+                    "404": {
+                        "description": "Favorite not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/google-maps/geocode": {
+            "post": {
+                "tags": [
+                    "Google Maps"
+                ],
+                "summary": "Geocode an address using Google Maps API",
+                "operationId": "efbd679940737ff848185b14481d4c62",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "address"
+                                ],
+                                "properties": {
+                                    "address": {
+                                        "type": "string",
+                                        "example": "123 Main St, Sydney NSW"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Geocode result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "lat": {
+                                            "type": "number"
+                                        },
+                                        "lng": {
+                                            "type": "number"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unable to geocode address",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/google-maps/autocomplete": {
+            "get": {
+                "tags": [
+                    "Google Maps"
+                ],
+                "summary": "Get Google Places Autocomplete suggestions for an address input",
+                "operationId": "007e2869e7201fbdb278749bbd032c39",
+                "parameters": [
+                    {
+                        "name": "input",
+                        "in": "query",
+                        "description": "Partial address or place input",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "123 Main St, Syd"
+                        }
+                    },
+                    {
+                        "name": "location",
+                        "in": "query",
+                        "description": "Lat,lng bias (optional)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "-33.8688,151.2093"
+                        }
+                    },
+                    {
+                        "name": "radius",
+                        "in": "query",
+                        "description": "Radius in meters (optional)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 50000
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Autocomplete results",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "predictions": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid input or API error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/payments/subscribe": {
+            "post": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Subscribe the authenticated user to a plan",
+                "operationId": "12c73d87e5667dcb72ced3c029f587c8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "plan"
+                                ],
+                                "properties": {
+                                    "plan": {
+                                        "type": "string",
+                                        "example": "premium"
+                                    },
+                                    "payment_method": {
+                                        "type": "string",
+                                        "example": "pm_card_visa"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Subscription created"
+                    },
+                    "400": {
+                        "description": "Error"
+                    }
+                }
+            }
+        },
+        "/payments/one-time": {
+            "post": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Create a one-time payment for a listing upgrade",
+                "operationId": "97fdc16fc27c77defae0e63a2c8a73a5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "number",
+                                        "example": 99
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "PaymentIntent client secret returned"
+                    },
+                    "400": {
+                        "description": "Error"
+                    }
+                }
+            }
+        },
+        "/payments/status": {
+            "get": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Get the authenticated user's subscription/payment status",
+                "operationId": "2c3fbf99b1d1f988e4a8546f8567ec26",
+                "responses": {
+                    "200": {
+                        "description": "Status returned"
+                    }
+                }
+            }
+        },
+        "/api/properties": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "List all properties with advanced filtering",
+                "operationId": "c2da11bedb89c85eeb889e2283ab4d1a",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "min_price",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "max_price",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "suburb",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "bedrooms",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "bathrooms",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "car_spaces",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "keywords",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "property_type_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "property_classification_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "listing_type_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "authority",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Full-text search for headline or description",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "latitude",
+                        "in": "query",
+                        "description": "Latitude for proximity search",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "format": "float"
+                        }
+                    },
+                    {
+                        "name": "longitude",
+                        "in": "query",
+                        "description": "Longitude for proximity search",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "format": "float"
+                        }
+                    },
+                    {
+                        "name": "radius",
+                        "in": "query",
+                        "description": "Radius in kilometers for proximity search",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "format": "float"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of properties"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Create a new property",
+                "operationId": "f8e23824bfd8e6dd8d38e0a0ac6b610c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "headline",
+                                    "status"
+                                ],
+                                "properties": {
+                                    "headline": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "string"
+                                    },
+                                    "price": {
+                                        "type": "number"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Property created"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/properties/{id}": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Get a single property",
+                "operationId": "bbdccce70f13ff861e6ca681eec5b089",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Property details"
+                    },
+                    "404": {
+                        "description": "Property not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Update a property",
+                "operationId": "7f41a575138bd8273a080d8a85be1b52",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "headline": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "string"
+                                    },
+                                    "price": {
+                                        "type": "number"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Property updated"
+                    },
+                    "404": {
+                        "description": "Property not found"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Delete a property",
+                "operationId": "49a43e01bc8b9e94bdfde4d37a615741",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Property deleted"
+                    },
+                    "404": {
+                        "description": "Property not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/rea/export/{id}": {
+            "post": {
+                "tags": [
+                    "REA Export"
+                ],
+                "summary": "Export a property to REA Group (realestate.com.au) via REAXML XML",
+                "operationId": "e3b9d035ebaed2d650d5be9e35acef45",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Export successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "response": {
+                                            "type": "object|array|string"
+                                        },
+                                        "status": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error or missing required fields",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/reaxml/generate/{id}": {
+            "get": {
+                "tags": [
+                    "REAXML"
+                ],
+                "summary": "Generate REAXML XML for a property",
+                "operationId": "784d0575e25e538b3d620ef1f49a1090",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "REAXML XML generated successfully",
+                        "content": {
+                            "application/xml": {}
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error or missing required fields",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/saved-searches": {
+            "get": {
+                "tags": [
+                    "SavedSearches"
+                ],
+                "summary": "List all saved searches",
+                "operationId": "556df1cfe87e8620791bd0bc1f25ceea",
+                "responses": {
+                    "200": {
+                        "description": "List of saved searches"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "SavedSearches"
+                ],
+                "summary": "Create a new saved search",
+                "operationId": "dcb5f0dc6e75d5135f961b442f9b34c9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id",
+                                    "search_criteria",
+                                    "name",
+                                    "notification_frequency"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "type": "integer"
+                                    },
+                                    "search_criteria": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "notification_frequency": {
+                                        "type": "string"
+                                    },
+                                    "last_notified_at": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Saved search created"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/saved-searches/{id}": {
+            "get": {
+                "tags": [
+                    "SavedSearches"
+                ],
+                "summary": "Get a single saved search",
+                "operationId": "e0bec95858396a546b2d8cb9d388acdb",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Saved search details"
+                    },
+                    "404": {
+                        "description": "Saved search not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "SavedSearches"
+                ],
+                "summary": "Update a saved search",
+                "operationId": "0b6f4fc8fd67a18ec409dda0b97a2d7f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "search_criteria": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "notification_frequency": {
+                                        "type": "string"
+                                    },
+                                    "last_notified_at": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Saved search updated"
+                    },
+                    "404": {
+                        "description": "Saved search not found"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "SavedSearches"
+                ],
+                "summary": "Delete a saved search",
+                "operationId": "3dfea85e2a29d263bed33c5afb2e4b52",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Saved search deleted"
+                    },
+                    "404": {
+                        "description": "Saved search not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/stripe/webhook": {
+            "post": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Stripe webhook endpoint for payment and subscription events",
+                "operationId": "c77485b60b58709691f47eadf6680365",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {}
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Webhook handled"
+                    }
+                }
+            }
+        },
+        "/api/users": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "List all users (admin only)",
+                "operationId": "d984437c865fbc5f63f68a37064e9d7d",
+                "responses": {
+                    "200": {
+                        "description": "List of users"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/{id}": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get a single user",
+                "operationId": "6d59d0fdd73e451768018c3539d2afaa",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User details"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update a user (admin only)",
+                "operationId": "7a4a0d19d85c089915f49afb8eb25701",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User updated"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Delete a user (admin only)",
+                "operationId": "1d07b16bf27727ca1c86418b53b87fd1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User deleted"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Addresses",
+            "description": "API endpoints for address management"
+        },
+        {
+            "name": "Agents",
+            "description": "Operations about property agents"
+        },
+        {
+            "name": "Favorites",
+            "description": "Operations about favorite properties"
+        },
+        {
+            "name": "Properties",
+            "description": "Operations about property listings"
+        },
+        {
+            "name": "SavedSearches",
+            "description": "Operations about saved searches"
+        },
+        {
+            "name": "Users",
+            "description": "Operations about users"
+        },
+        {
+            "name": "Google Maps",
+            "description": "Google Maps"
+        },
+        {
+            "name": "Payments",
+            "description": "Payments"
+        },
+        {
+            "name": "REA Export",
+            "description": "REA Export"
+        },
+        {
+            "name": "REAXML",
+            "description": "REAXML"
+        }
+    ]
+}

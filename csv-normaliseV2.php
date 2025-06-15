@@ -222,12 +222,13 @@ function cleanFullDescField($val) {
     $val = preg_replace('/((<p><\/p>)\s*)+/i', "\r\n", $val);
     $val = str_replace('&nbsp;', " ", $val);
     $val = str_replace(' ,', ", ", $val);
-    $val = strip_tags($val);
-    $val = preg_replace("/(\r\n){2}/", "\r\n", $val); // reduce multiple blank lines to no more than 2
+    // Add a space before removing tags to preserve word boundaries
+    $val = preg_replace('/<[^>]+>/', ' ', $val); // replace all tags with a space
     $val = html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     $val = preg_replace('/[ \t]+/', ' ', $val); // collapse spaces/tabs
     // Remove whitespace before and after \r\n
     $val = preg_replace('/[ \t]*\r\n[ \t]*/', "\r\n", $val);
+    $val = preg_replace('/\s+/', ' ', $val); // collapse all whitespace to single space
     $val = trim($val);
     if ($val === '') {
         $val = null;
