@@ -122,7 +122,7 @@ function normalizeSuburb($suburb, $townNames = null) {
     // Remove anything in parentheses
     $t = preg_replace('/\s*\([^)]*\)/', '', $t);
     // Remove trailing state/region info (e.g., 'Nsw', 'Qld', etc.)
-    $t = preg_replace('/\b(NSW|Nsw|Qld|QLD|Vic|VIC|Tas|TAS|SA|WA|NT|ACT|Central Highlands|South Coast| - Tasmania|North Shore|Gold Coast|Byron Bay|Kurrajong |Wollongong|Wollongong Mall|Tasmania)\b.*/i', '', $t);
+    $t = preg_replace('/\b(NSW|Nsw|Qld|QLD|Vic|VIC|Tas|TAS|SA|WA|NT|ACT|Central Highlands|South Coast| - Tasmania|North Shore|Gold Coast|Byron Bay|Kurrajong |Wollongong Mall|Tasmania)\b.*/i', '', $t);
     // Remove comma and everything after
     $t = preg_replace('/,.*/', '', $t);
     // Remove forward slash and everything after
@@ -221,6 +221,7 @@ function cleanFullDescField($val) {
     // Replace multiple consecutive <p> tags with a double line break
     $val = preg_replace('/((<p><\/p>)\s*)+/i', "\r\n", $val);
     $val = str_replace('&nbsp;', " ", $val);
+    $val = str_replace(' ,', ", ", $val);
     $val = strip_tags($val);
     $val = preg_replace("/(\r\n){2}/", "\r\n", $val); // reduce multiple blank lines to no more than 2
     $val = html_entity_decode($val, ENT_QUOTES | ENT_HTML5, 'UTF-8');
@@ -247,6 +248,16 @@ function cleanFeaturesField($val) {
         $val = null;
     }
     return $val;
+}
+
+// Helper: Remove emojis and non-ASCII characters
+function removeEmojisAndNonAscii($text) {
+    if ($text === null) return '';
+    // Remove all non-ASCII characters (including emojis)
+    $text = preg_replace('/[\x80-\xFF]+/', '', $text);
+    // Remove multi-byte Unicode emoji (safe fallback)
+    $text = preg_replace('/[\x{1F600}-\x{1F64F}\x{1F300}-\x{1F5FF}\x{1F680}-\x{1F6FF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}]+/u', '', $text);
+    return $text;
 }
 
 // Process CSV
@@ -322,13 +333,21 @@ while (($row = fgetcsv($in)) !== false) {
     // Special handling for Contact field: replace </p><p> and <br> with \n, then sanitize
     if ($assoc['listingsdbelements_field_name'] === 'Contact') {
         $assoc['listingsdbelements_field_value'] = cleanContactField($assoc['listingsdbelements_field_value']);
+        $assoc['listingsdbelements_field_value'] = removeEmojisAndNonAscii($assoc['listingsdbelements_field_value']);
     }
     // Only clean/tidy for full_desc, no grammar/spellcheck
     else if ($assoc['listingsdbelements_field_name'] === 'full_desc') {
         $assoc['listingsdbelements_field_value'] = cleanFullDescField($assoc['listingsdbelements_field_value']);
+        $assoc['listingsdbelements_field_value'] = removeEmojisAndNonAscii($assoc['listingsdbelements_field_value']);
     } else if (in_array($assoc['listingsdbelements_field_name'], ['home_features', 'community_features'])) {
         // Only clean/tidy, no grammar/spellcheck
         $assoc['listingsdbelements_field_value'] = cleanFeaturesField($assoc['listingsdbelements_field_value']);
+        $assoc['listingsdbelements_field_value'] = removeEmojisAndNonAscii($assoc['listingsdbelements_field_value']);
+    }
+    // Trim numeric fields
+    $numericFields = ['lot_size', 'sq_mtr', 'garage_size', 'price', 'building_size', 'land_size'];
+    if (in_array($assoc['listingsdbelements_field_name'], $numericFields)) {
+        $assoc['listingsdbelements_field_value'] = trim($assoc['listingsdbelements_field_value']);
     }
     // Always wrap every value in double quotes for CSV output, escaping any existing quotes
     $quoted = array_map(function($v) {

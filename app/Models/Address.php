@@ -16,7 +16,7 @@ class Address extends Model
         'address_line_2',
         'suburb_name',
         'state_name',
-        'postcode',
+        'postcode_number', // Changed from postcode_name
         'country_name',
         'city_name',
         'region_name',

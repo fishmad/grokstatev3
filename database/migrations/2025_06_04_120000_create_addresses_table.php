@@ -20,11 +20,11 @@ return new class extends Migration
             $table->foreign('state_id')->references('id')->on('states')->onDelete('set null');
             $table->foreignId('suburb_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('region_id')->nullable()->constrained('regions')->onDelete('set null');
-            $table->string('address_line_1')->nullable(); // Unit or street address
-            $table->string('address_line_2')->nullable(); // Additional address information
-            $table->string('postcode')->nullable(); // Postal code
+            $table->string('postcode_number')->nullable(); // Postal code 
             $table->string('suburb_name')->nullable(); // Suburb Name
             $table->string('state_name')->nullable(); // State Name
+            $table->string('address_line_1')->nullable(); // Unit or street address
+            $table->string('address_line_2')->nullable(); // Additional address information
             $table->string('country_name')->nullable(); // Country Name
             $table->string('lot_number')->nullable();
             $table->string('unit_number')->nullable();

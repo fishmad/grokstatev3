@@ -44,9 +44,39 @@ class AustralianSuburbsSeeder extends Seeder
             ['name' => 'Darwin', 'postcode' => '0800', 'state' => 'Northern Territory'],
         ];
 
+        // Load AU.txt for lat/lng lookup using only suburb name
+        $auTowns = [];
+        $auFile = base_path('AU.txt');
+        if (file_exists($auFile)) {
+            $handle = fopen($auFile, 'r');
+            while (($line = fgets($handle)) !== false) {
+                $parts = explode("\t", $line);
+                if (count($parts) > 7) {
+                    $name = strtolower(trim($parts[1]));
+                    $lat = trim($parts[4]);
+                    $lng = trim($parts[5]);
+                    if ($name && $lat && $lng) {
+                        $auTowns[$name] = ['lat' => $lat, 'lng' => $lng];
+                    }
+                }
+            }
+            fclose($handle);
+        }
+
         foreach ($suburbs as $suburb) {
             $state = $states[$suburb['state']] ?? null;
             if (!$state) continue;
+            $slug = \Illuminate\Support\Str::slug($suburb['name']) . '-' . $suburb['postcode'];
+            $lat = null;
+            $lng = null;
+            $key = strtolower($suburb['name']);
+            if (!isset($auTowns[$key])) {
+                \Log::warning("[AustralianSuburbsSeeder] No lat/lng found for suburb '{$suburb['name']}' with key '$key'");
+            }
+            if (isset($auTowns[$key])) {
+                $lat = $auTowns[$key]['lat'];
+                $lng = $auTowns[$key]['lng'];
+            }
             Suburb::updateOrCreate(
                 [
                     'name' => $suburb['name'],
@@ -54,7 +84,9 @@ class AustralianSuburbsSeeder extends Seeder
                 ],
                 [
                     'postcode' => $suburb['postcode'],
-                    'slug' => \Illuminate\Support\Str::slug($suburb['name']),
+                    'slug' => $slug,
+                    'latitude' => $lat,
+                    'longitude' => $lng,
                 ]
             );
         }
